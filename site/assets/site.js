@@ -970,7 +970,7 @@
     var copySha = $("#copySha");
     if (copySha) {
       copySha.addEventListener("click", async function () {
-        var value = "D58018B1564F2EA156BEA2DE294F01DB5B53FFC2990FC30C9DAA45293FBA233C";
+        var value = "EAE312F67D27C55B86A77D7410F40B595CA1C93FB7EB0ACF4976C209587C7141";
         try {
           await navigator.clipboard.writeText(value);
         } catch (e) {
