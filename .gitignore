@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# 构建产物
+/dist/
+/release/
+/build/work/
+/build/installer/files/
+/build/bundle_imports.py
+
+# 本地运行数据与密钥（绝不提交）
+data/
+secret.key
+config.dat
+nexus.db
+*.log
+backup-*/
+
+# 第三方参考资料
+/参考/
+
+# 截图、临时文件与生成的网页版 README
+/.screenshots/
+/.trae-html-share-packages/
+*.jxr
+/README.html
+
+# 虚拟环境与本地配置
+.venv/
+venv/
+.env
