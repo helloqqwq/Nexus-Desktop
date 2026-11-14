@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nexus · 本地优先的 Windows 桌面 AI 助手</title>
+<meta name="description" content="Nexus 是一个本地优先的 Windows 桌面 AI 助手：排查电脑、整理文件、写文档、做网页、替你操作界面。数据留在本机，危险动作先确认。">
+<meta property="og:title" content="Nexus · 本地优先的 Windows 桌面 AI 助手">
+<meta property="og:description" content="用一句话完成电脑排查、文档生成与界面操作。数据留在本机，危险动作先确认。">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="assets/app.css">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="icon" href="assets/nexus.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/nexus.ico">
+</head>
+<body class="site">
+
+<header class="m-nav" id="mNav">
+  <a class="m-brand" href="#top">
+    <span class="logo-mark"></span>
+    <span class="brand-name">Nexus</span>
+  </a>
+  <nav class="m-links">
+    <a href="#features" data-i18n="能力">能力</a>
+    <a href="#demo" data-i18n="在线试用">在线试用</a>
+    <a href="#security" data-i18n="安全">安全</a>
+    <a href="#download" data-i18n="下载">下载</a>
+    <a href="#faq" data-i18n="常见问题">常见问题</a>
+  </nav>
+  <div class="m-nav-actions">
+    <button class="m-lang" id="langBtn" data-i18n-title="切换语言" title="切换语言">EN</button>
+    <a class="m-btn primary" href="#download" data-i18n="下载 Windows 版">下载 Windows 版</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="m-hero">
+    <div class="m-hero-inner">
+      <div class="m-eyebrow"><span class="m-dot"></span><span data-i18n="本地优先 · Windows 桌面 AI 助手">本地优先 · Windows 桌面 AI 助手</span></div>
+      <h1>
+        <span data-i18n="把电脑，">把电脑，</span><br>
+        <span class="m-grad" data-i18n="交给一句话。">交给一句话。</span>
+      </h1>
+      <p class="m-lead" data-i18n="说一句「帮我把网修好」或「把这堆资料做成 PPT」，Nexus 就去做。30+ 个工具接在桌面上：查网络、理文件、写文档、做网页、点按钮，都不用再一层层找菜单。">
+        说一句「帮我把网修好」或「把这堆资料做成 PPT」，Nexus 就去做。30+ 个工具接在桌面上：查网络、理文件、写文档、做网页、点按钮，都不用再一层层找菜单。
+      </p>
+      <div class="m-cta">
+        <a class="m-btn primary lg" href="#download" data-i18n="下载 Windows 版">下载 Windows 版</a>
+        <a class="m-btn lg" href="#demo" data-i18n="在浏览器里试用">在浏览器里试用</a>
+      </div>
+      <div class="m-meta">
+        <span>VERSION 0.1.0</span>
+        <span>WINDOWS 10 / 11</span>
+        <span data-i18n="30+ 个工具">30+ 个工具</span>
+        <span data-i18n="9 家模型厂商">9 家模型厂商</span>
+      </div>
+
+      <aside class="m-hero-panel">
+        <div class="m-hp-row"><span>TOOLS</span><b data-i18n="30+ 个">30+ 个</b></div>
+        <div class="m-hp-row"><span>PROVIDERS</span><b data-i18n="9 家">9 家</b></div>
+        <div class="m-hp-row"><span>SETUP</span><b data-i18n="双击即用">双击即用</b></div>
+        <div class="m-hp-foot">LOCAL-FIRST · AES-256-GCM</div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="m-demo" id="demo">
+    <div class="m-section-head">
+      <div class="m-kicker">01 / <span data-i18n="在线试用">在线试用</span></div>
+      <h2 data-i18n="先聊两句，再决定要不要装">先聊两句，再决定要不要装</h2>
+      <p data-i18n="下面是桌面版界面的 1:1 网页还原，不用安装就能聊。填一个你自己的 API Key 就能开始——不用注册，Key 只留在这台设备的浏览器里。">
+        下面是桌面版界面的 1:1 网页还原，不用安装就能聊。填一个你自己的 API Key 就能开始——不用注册，Key 只留在这台设备的浏览器里。
+      </p>
+    </div>
+
+    <div class="demo-frame">
+      <div class="demo-chrome">
+        <span class="demo-title">Nexus</span>
+        <div class="demo-chrome-actions">
+          <span class="demo-win"><i></i></span><span class="demo-win"><i></i></span><span class="demo-win"><i></i></span>
+        </div>
+      </div>
+
+      <div class="app demo-app" id="demoApp">
+        <aside class="sidebar">
+          <div class="side-head">
+            <div class="brand" id="demoBrand">
+              <span class="brand-ring"></span><span class="brand-dot"></span>
+              <span class="brand-name">Nexus</span>
+            </div>
+            <span class="demo-tag" data-i18n="网页试用">网页试用</span>
+          </div>
+
+          <button class="new-chat" id="demoNewChat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span class="new-chat-text" data-i18n="新对话">新对话</span>
+          </button>
+
+          <nav class="side-nav">
+            <button class="nav-item active" data-demo-view="chat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A3.5 3.5 0 0 1 7.5 4h9A3.5 3.5 0 0 1 20 7.5v6a3.5 3.5 0 0 1-3.5 3.5H9l-4 3v-3.2A3.5 3.5 0 0 1 4 13.5z"/></svg>
+              <span class="nav-label" data-i18n="对话">对话</span>
+            </button>
+            <button class="nav-item" data-demo-view="settings">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h10M18 17h2"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+              <span class="nav-label" data-i18n="模型设置">模型设置</span>
+            </button>
+          </nav>
+
+          <div class="side-section">
+            <div class="side-label"><span data-i18n="最近对话">最近对话</span></div>
+            <div class="side-list" id="demoSessions">
+              <div class="side-empty" data-i18n="还没有对话">还没有对话</div>
+            </div>
+          </div>
+
+          <div class="side-foot">
+            <button class="side-mode" id="demoModeBtn" data-i18n-title="演示模式" title="演示模式">
+              <span class="side-mode-dot"></span>
+              <span class="side-mode-text" data-i18n="网页演示">网页演示</span>
+            </button>
+            <button class="icon-btn" id="demoThemeBtn" data-i18n-title="切换外观" title="切换外观" aria-label="切换外观">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg>
+            </button>
+          </div>
+        </aside>
+
+        <main class="main">
+          <header class="topbar">
+            <div class="topbar-left">
+              <div class="topbar-title">
+                <span id="demoTitle" data-i18n="新对话">新对话</span>
+                <span class="badge" data-i18n="演示">演示</span>
+              </div>
+            </div>
+            <div class="topbar-actions">
+              <button class="icon-btn" id="demoConfigBtn" data-i18n-title="配置模型" title="配置模型" aria-label="配置模型">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h10M18 17h2"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+              </button>
+            </div>
+          </header>
+
+          <section class="view">
+            <div class="messages" id="demoMessages">
+              <div class="thread" id="demoThread">
+                <div class="empty" id="demoEmpty">
+                  <div class="empty-mark"><span class="mark-ring"></span><span class="mark-dot"></span></div>
+                  <h1 data-i18n="有什么可以帮你？">有什么可以帮你？</h1>
+                  <p data-i18n="网页版只做对话：写文案、解释概念、给代码片段">网页版只做对话：写文案、解释概念、给代码片段</p>
+                  <div class="chips" id="demoChips"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="composer-wrap">
+              <div class="composer">
+                <textarea id="demoInput" rows="1" data-i18n-placeholder="说说你想做什么…（Enter 发送，Shift+Enter 换行）" placeholder="说说你想做什么…（Enter 发送，Shift+Enter 换行）" spellcheck="false"></textarea>
+                <div class="composer-actions">
+                  <button class="quick-pill" id="demoModelPill" data-i18n-title="模型" title="模型">
+                    <img class="pill-icon" id="demoPillIcon" alt="" hidden>
+                    <span id="demoPillText" data-i18n="先配置模型">先配置模型</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5 5 5-5"/></svg>
+                  </button>
+                  <span class="composer-divider"></span>
+                  <span class="demo-hint" id="demoHint" data-i18n="Key 仅存本机浏览器">Key 仅存本机浏览器</span>
+                  <span class="composer-spacer"></span>
+                  <button class="send-btn" id="demoSend" data-i18n-title="发送" title="发送" aria-label="发送">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="demo-status" id="demoStatus"></div>
+            </div>
+          </section>
+        </main>
+
+        <div class="pop-menu model-menu" id="demoModelMenu" hidden>
+          <div class="menu-title" data-i18n="模型">模型</div>
+          <div id="demoModelList"></div>
+          <div class="menu-sep"></div>
+          <button class="menu-row" id="demoMenuConfig"><span data-i18n="配置 API Key…">配置 API Key…</span><b class="menu-check"></b></button>
+        </div>
+
+        <div class="modal-mask" id="demoConfigMask" hidden>
+          <div class="modal demo-config-modal">
+            <div class="modal-title-row">
+              <div class="modal-title" data-i18n="配置模型">配置模型</div>
+              <button type="button" class="icon-btn demo-modal-close" id="demoConfigClose" data-i18n-title="关闭" title="关闭" aria-label="关闭">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>
+              </button>
+            </div>
+            <div class="m-config-note">
+              <span data-i18n="Key 只保存在本机浏览器的 localStorage，不发送到任何中间服务器；对话会直接从浏览器请求厂商接口。">
+                Key 只保存在本机浏览器的 localStorage，不发送到任何中间服务器；对话会直接从浏览器请求厂商接口。
+              </span>
+            </div>
+            <div class="provider-grid" id="demoProviderGrid"></div>
+            <div class="provider-detail" id="demoProviderDetail" hidden>
+              <div class="provider-detail-head">
+                <div class="provider-detail-title">
+                  <span class="provider-mark" id="demoPdMark">AI</span>
+                  <b id="demoPdName" data-i18n="厂商">厂商</b>
+                  <span class="provider-badge" id="demoPdKind">OpenAI</span>
+                </div>
+                <button type="button" class="btn text" id="demoPdClose" data-i18n="收起">收起</button>
+              </div>
+              <label class="field"><span>API Key</span>
+                <input id="demoKeyInput" type="password" placeholder="sk-..." autocomplete="off">
+              </label>
+              <label class="field"><span data-i18n="接口地址">接口地址</span>
+                <input id="demoBaseInput" type="text" placeholder="https://api.example.com/v1" autocomplete="off">
+              </label>
+              <label class="field"><span data-i18n="模型">模型</span>
+                <select id="demoModelSelect"></select>
+                <input id="demoModelInput" type="text" placeholder="模型 ID，例如 gpt-4o-mini" autocomplete="off" hidden>
+              </label>
+              <div class="field-row">
+                <button class="btn primary sm" id="demoSaveKey" data-i18n="保存并设为当前">保存并设为当前</button>
+                <button class="btn ghost sm" id="demoClearKey" data-i18n="删除配置">删除配置</button>
+                <span class="field-status" id="demoKeyStatus"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="demo-foot" data-i18n="网页版只做对话；文件读写、命令执行与界面操作，装桌面版就能用。">
+      网页版只做对话；文件读写、命令执行与界面操作，装桌面版就能用。
+    </p>
+  </section>
+
+  <section class="m-section" id="features">
+    <div class="m-section-head">
+      <div class="m-kicker">02 / <span data-i18n="能力">能力</span></div>
+      <h2 data-i18n="三件事，一句话就够了">三件事，一句话就够了</h2>
+    </div>
+    <div class="m-cards">
+      <article class="m-card">
+        <div class="m-card-kicker">01 / DIAGNOSE</div>
+        <h3 data-i18n="电脑管家">电脑管家</h3>
+        <p data-i18n="网断了、变慢了、某个端口不通，直接问。系统信息、进程、服务、ping / DNS / IP / 代理 / 端口一次查完，再给出能照着做的修复步骤。">
+          网断了、变慢了、某个端口不通，直接问。系统信息、进程、服务、ping / DNS / IP / 代理 / 端口一次查完，再给出能照着做的修复步骤。
+        </p>
+        <ul class="m-list">
+          <li data-i18n="一句话跑完一轮网络诊断">一句话跑完一轮网络诊断</li>
+          <li data-i18n="进程、服务、磁盘占用一屏看清">进程、服务、磁盘占用一屏看清</li>
+          <li data-i18n="修复命令直接给出，确认即执行">修复命令直接给出，确认即执行</li>
+        </ul>
+      </article>
+      <article class="m-card">
+        <div class="m-card-kicker">02 / CREATE</div>
+        <h3 data-i18n="知识助手">知识助手</h3>
+        <p data-i18n="把一堆散文件变成能交付的成品：Markdown、CSV、Word、Excel、PPT，或者 CSS、JS、图片全部内联的单文件网页，说一声就生成。">
+          把一堆散文件变成能交付的成品：Markdown、CSV、Word、Excel、PPT，或者 CSS、JS、图片全部内联的单文件网页，说一声就生成。
+        </p>
+        <ul class="m-list">
+          <li data-i18n="Word / Excel / PPT / PDF 读与写">Word / Excel / PPT / PDF 读与写</li>
+          <li data-i18n="单文件网页，双击就能打开">单文件网页，双击就能打开</li>
+          <li data-i18n="截图丢进来就能看图说话">截图丢进来就能看图说话</li>
+        </ul>
+      </article>
+      <article class="m-card">
+        <div class="m-card-kicker">03 / OPERATE</div>
+        <h3 data-i18n="界面操作">界面操作</h3>
+        <p data-i18n="不是所有软件都有 API。Nexus 走 Windows UI 树，找到窗口里的按钮和输入框，把重复的点击和填写替你做掉。">
+          不是所有软件都有 API。Nexus 走 Windows UI 树，找到窗口里的按钮和输入框，把重复的点击和填写替你做掉。
+        </p>
+        <ul class="m-list">
+          <li data-i18n="按控件名与类型精准定位">按控件名与类型精准定位</li>
+          <li data-i18n="点击、输入、快捷键组合都能做">点击、输入、快捷键组合都能做</li>
+          <li data-i18n="没有接口的老软件也能自动化">没有接口的老软件也能自动化</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="m-section m-split" id="security">
+    <div class="m-split-left">
+      <div class="m-kicker">03 / <span data-i18n="安全">安全</span></div>
+      <h2 data-i18n="放得开，也收得住">放得开，也收得住</h2>
+      <p data-i18n="它能读写文件、执行命令、操作界面，所以把权限做成了三档：只让它看、每一步问你、或者放手让它做，按场景随时切换。数据与密钥都留在这台机器上。">
+        它能读写文件、执行命令、操作界面，所以把权限做成了三档：只让它看、每一步问你、或者放手让它做，按场景随时切换。数据与密钥都留在这台机器上。
+      </p>
+    </div>
+    <div class="m-split-right">
+      <div class="m-rows">
+        <div class="m-row">
+          <span class="m-row-label" data-i18n="数据在你手里">数据在你手里</span>
+          <span class="m-row-text" data-i18n="历史、文件与配置都在这台机器上，换台电脑不会自动跟过去；备份与清理都由你决定。">历史、文件与配置都在这台机器上，换台电脑不会自动跟过去；备份与清理都由你决定。</span>
+        </div>
+        <div class="m-row">
+          <span class="m-row-label" data-i18n="密钥加密保存">密钥加密保存</span>
+          <span class="m-row-text" data-i18n="每家厂商的 API Key 独立加密（AES-256-GCM，密钥由 Windows DPAPI 保护），只有这台机器解得开。">每家厂商的 API Key 独立加密（AES-256-GCM，密钥由 Windows DPAPI 保护），只有这台机器解得开。</span>
+        </div>
+        <div class="m-row">
+          <span class="m-row-label" data-i18n="三档权限">三档权限</span>
+          <span class="m-row-text" data-i18n="安全 / 监管 / 全部下放：从只读工具到全量工具，一个开关切换，危险动作默认逐条确认。">安全 / 监管 / 全部下放：从只读工具到全量工具，一个开关切换，危险动作默认逐条确认。</span>
+        </div>
+        <div class="m-row">
+          <span class="m-row-label" data-i18n="写入有边界">写入有边界</span>
+          <span class="m-row-text" data-i18n="写文件只落在桌面、文档、下载、图片与输出目录；系统目录与浏览器凭据不在范围内。">写文件只落在桌面、文档、下载、图片与输出目录；系统目录与浏览器凭据不在范围内。</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="m-section" id="download">
+    <div class="m-section-head">
+      <div class="m-kicker">04 / <span data-i18n="下载与更新">下载与更新</span></div>
+      <h2 data-i18n="装上就能用，更新自动完成">装上就能用，更新自动完成</h2>
+    </div>
+    <div class="m-download">
+      <div class="m-download-card">
+        <div class="m-download-head">
+          <div>
+            <div class="m-download-name">Nexus for Windows</div>
+            <div class="m-download-meta" id="dlMeta">v0.1.0 · Windows 10 / 11 x64 · 67.4 MiB</div>
+          </div>
+          <span class="m-tag" data-i18n="稳定版">稳定版</span>
+        </div>
+        <div class="m-download-actions">
+          <a class="m-btn primary lg" id="dlInstaller" href="https://37jn10d54xg2snsh7sl.traesite.cn/Nexus-Setup-0.1.0.exe" download data-i18n="下载安装包">下载安装包</a>
+          <button class="m-btn lg" id="copySha" type="button" data-i18n="复制 SHA-256">复制 SHA-256</button>
+        </div>
+        <div class="m-sha">
+          <span>SHA-256</span>
+          <code id="shaText" title="D58018B1564F2EA156BEA2DE294F01DB5B53FFC2990FC30C9DAA45293FBA233C">D58018B1…FBA233C</code>
+        </div>
+        <p class="m-download-note" data-i18n="双击安装，不需要预装 Python 或运行库；客户端内置自动更新，读取同一通道的 update.json 检查版本，下载后校验 SHA-256 再安装。">
+          双击安装，不需要预装 Python 或运行库；客户端内置自动更新，读取同一通道的 update.json 检查版本，下载后校验 SHA-256 再安装。
+        </p>
+        <div class="m-download-chips">
+          <span data-i18n="内置 WebView2">内置 WebView2</span>
+          <span data-i18n="支持离线诊断">支持离线诊断</span>
+          <span data-i18n="更新可断点续传">更新可断点续传</span>
+        </div>
+      </div>
+      <div class="m-download-side">
+        <div class="m-stat"><span data-i18n="运行环境">运行环境</span><b>Windows 10 / 11 · x64</b></div>
+        <div class="m-stat"><span data-i18n="安装包">安装包</span><b>67.4 MiB · .exe</b></div>
+        <div class="m-stat"><span data-i18n="模型接入">模型接入</span><b data-i18n="8 家厂商 + 自定义">8 家厂商 + 自定义</b></div>
+        <div class="m-stat"><span data-i18n="自动更新">自动更新</span><b data-i18n="内置">内置</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="m-section" id="faq">
+    <div class="m-section-head">
+      <div class="m-kicker">05 / <span data-i18n="常见问题">常见问题</span></div>
+      <h2 data-i18n="你可能想知道">你可能想知道</h2>
+    </div>
+    <div class="m-faq">
+      <details open>
+        <summary data-i18n="需要联网吗？">需要联网吗？</summary>
+        <p data-i18n="对话需要连你配置的模型服务；文件、历史与配置都留在这台机器上，断网时网络诊断照样能用。">对话需要连你配置的模型服务；文件、历史与配置都留在这台机器上，断网时网络诊断照样能用。</p>
+      </details>
+      <details>
+        <summary data-i18n="支持哪些模型？">支持哪些模型？</summary>
+        <p data-i18n="内置小米 MiMo、火山方舟、DeepSeek、硅基流动、Kimi、智谱 GLM、MiniMax、通义千问，另可自定义 OpenAI 兼容或 Anthropic 兼容接口。每家 Key 独立保存，可同时配置多家。">
+          内置小米 MiMo、火山方舟、DeepSeek、硅基流动、Kimi、智谱 GLM、MiniMax、通义千问，另可自定义 OpenAI 兼容或 Anthropic 兼容接口。每家 Key 独立保存，可同时配置多家。
+        </p>
+      </details>
+      <details>
+        <summary data-i18n="会不会乱动我的电脑？">会不会乱动我的电脑？</summary>
+        <p data-i18n="默认监管模式：命令执行、打开程序、删除文件与界面操作都会先问你；想让它自己跑，切到全部下放就行。">
+          默认监管模式：命令执行、打开程序、删除文件与界面操作都会先问你；想让它自己跑，切到全部下放就行。
+        </p>
+      </details>
+      <details>
+        <summary data-i18n="网页试用和桌面版有什么区别？">网页试用和桌面版有什么区别？</summary>
+        <p data-i18n="网页版只做对话；桌面版有 30+ 个工具，能读写文件、执行命令、操作界面，也能记住你的历史与配置。">
+          网页版只做对话；桌面版有 30+ 个工具，能读写文件、执行命令、操作界面，也能记住你的历史与配置。
+        </p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="m-footer">
+  <div class="m-footer-brand">
+    <span class="logo-mark"></span>
+    <span>Nexus</span>
+  </div>
+  <div class="m-footer-links">
+    <a href="#features" data-i18n="能力">能力</a>
+    <a href="#security" data-i18n="安全">安全</a>
+    <a href="#download" data-i18n="下载">下载</a>
+    <a href="https://37jn10d54xg2snsh7sl.traesite.cn/update.json" target="_blank" rel="noreferrer" data-i18n="更新清单">更新清单</a>
+  </div>
+  <div class="m-footer-note">
+    <span>© 2026 Nexus</span>
+    <span data-i18n="本地优先 · 数据在你手里">本地优先 · 数据在你手里</span>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

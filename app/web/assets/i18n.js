@@ -1,0 +1,726 @@
+/* Nexus 前端双语字典：以中文原文为键，英文模式查表替换。 */
+(function () {
+  'use strict';
+
+  const EN = {
+    /* 侧栏 / 顶栏 */
+    '收起侧栏': 'Collapse sidebar',
+    '展开侧栏': 'Expand sidebar',
+    '收起侧栏（Ctrl+B）': 'Collapse sidebar (Ctrl+B)',
+    '展开侧栏（Ctrl+B）': 'Expand sidebar (Ctrl+B)',
+    '新对话': 'New chat',
+    '新对话（Ctrl+N）': 'New chat (Ctrl+N)',
+    '对话': 'Chat',
+    '历史': 'History',
+    '设置': 'Settings',
+    '最近对话': 'Recent chats',
+    '全部历史': 'All history',
+    '还没有对话': 'No chats yet',
+    '切换运行模式': 'Switch mode',
+    '安全模式': 'Safe mode',
+    '监管模式': 'Supervised mode',
+    '全部下放': 'Full access',
+    '安全': 'Safe',
+    '监管': 'Supervised',
+    '下放': 'Full',
+    '切换外观': 'Toggle appearance',
+    '当前状态': 'Current status',
+    '文件面板': 'File panel',
+    '快捷键（Ctrl+/）': 'Shortcuts (Ctrl+/)',
+    '快捷键': 'Shortcuts',
+    '最小化': 'Minimize',
+    '最大化（保留任务栏；F11 全屏）': 'Maximize (keeps taskbar; F11 fullscreen)',
+    '最大化': 'Maximize',
+    '隐藏窗口': 'Hide window',
+    '隐藏窗口到托盘': 'Hide to tray',
+    '有什么可以帮你？': 'What can I help you with?',
+    '电脑出问题、写份文档、做个小网页，直接说就行':
+      'Computer problems, documents, or a small web page — just ask.',
+    '说说你想做什么…（/ 命令，@ 引用文件）':
+      'Tell me what you want to do… (/ commands, @ files)',
+    '正在聆听…': 'Listening…',
+    '结束语音输入': 'Stop voice input',
+    '添加文件或截图': 'Add files or screenshots',
+    '添加': 'Add',
+    '模型与推理强度': 'Model and reasoning effort',
+    '语音输入（本地识别）': 'Voice input (local recognition)',
+    '语音输入': 'Voice input',
+    '截图提问': 'Ask with a screenshot',
+    '区域截图': 'Region screenshot',
+    '停止': 'Stop',
+    '发送（Enter）': 'Send (Enter)',
+    '发送': 'Send',
+    '引用本地文件…': 'Reference a local file…',
+    '截取整个屏幕': 'Capture the entire screen',
+    '框选屏幕区域': 'Select a screen region',
+    '模型': 'Model',
+    '高 · 更快': 'High · faster',
+    '最高 · 更深入': 'Max · deeper',
+    '高': 'High',
+    '最高': 'Max',
+    '推理强度': 'Reasoning effort',
+
+    /* 历史页 */
+    '文件': 'Files',
+    '排查记录': 'Diagnostics',
+    '定时任务': 'Scheduled tasks',
+    '加载中…': 'Loading…',
+    '加载失败': 'Failed to load',
+    '还没有记录': 'No records yet',
+    '删除': 'Delete',
+    '打开': 'Open',
+    '位置': 'Location',
+    '查看': 'View',
+    '暂无定时任务': 'No scheduled tasks yet',
+    '尚未运行': 'Not run yet',
+    '暂停': 'Pause',
+    '启用': 'Enable',
+    '每 {n} 分钟': 'Every {n} min',
+    '{n} 分钟': '{n} min',
+    '{n} 小时': '{n} h',
+    '{n} 天': '{n} d',
+    '下次 {time}': 'Next {time}',
+    '刚刚': 'Just now',
+    '条消息': 'messages',
+    '个文件': 'files',
+
+    /* 消息 */
+    '思考过程': 'Reasoning',
+    '复制': 'Copy',
+    '重新生成': 'Regenerate',
+    '引用': 'Quote',
+    '已复制': 'Copied',
+    '复制失败': 'Copy failed',
+    '已引用到输入框': 'Quoted in the input box',
+    '已引用 {name}': 'Referenced {name}',
+    '已引用 {n} 个文件': 'Referenced {n} files',
+    '已添加 {n} 个附件': 'Added {n} attachments',
+    '已添加截图，可以补充问题后发送':
+      'Screenshot added. Add a question if you like, then send.',
+    '已添加区域截图': 'Region screenshot added',
+    '正在回答中，先停止再试': 'Still replying. Stop the current answer first.',
+    '找不到上一条提问': 'Could not find the previous question',
+    '已停止': 'Stopped',
+    '出错了': 'Something went wrong',
+    '执行出错：{msg}': 'Execution error: {msg}',
+    '可查看日志或重试': 'Check the logs or try again',
+    '停止回答': 'Stop answering',
+    '中断当前生成': 'Stop the current generation',
+    '操作失败：{msg}': 'Operation failed: {msg}',
+    '界面还未就绪，请稍等一下': 'The interface is not ready yet. Please wait.',
+    '需要你确认': 'Confirmation required',
+    '需要你的回答': 'Your answer is needed',
+    '取消': 'Cancel',
+    '允许执行': 'Allow',
+    '提交': 'Submit',
+    '输入回答…': 'Type an answer…',
+    '也可以直接输入回答…': 'Or type an answer…',
+    '知道了': 'Got it',
+    '松开即可添加到对话': 'Drop to add to the conversation',
+    '图片会作为附件，文本文件会作为引用内容':
+      'Images become attachments; text files become quoted content',
+    '图片预览': 'Image preview',
+
+    /* 命令与工具 */
+    '清空当前对话': 'Clear current chat',
+    '只清空界面，不删除记录': 'Clear the view only; records are kept',
+    '历史记录': 'History',
+    '过去的对话、文件与排查记录': 'Past chats, files, and diagnostics',
+    '切换模型': 'Switch model',
+    '截图': 'Screenshot',
+    '截取整个屏幕并附到对话': 'Capture the screen and attach it',
+    '语音输入': 'Voice input',
+    '打开 Windows 语音输入': 'Open Windows voice input',
+    '引用文件': 'Reference file',
+    '选择本地文件并插入路径': 'Pick a local file and insert its path',
+    '停止回答': 'Stop answering',
+    '查看全部快捷键': 'View all shortcuts',
+    '读取文件': 'Read file',
+    '写入文件': 'Write file',
+    '修改文件': 'Edit file',
+    '查看文件夹': 'List folder',
+    '搜索文件': 'Search files',
+    '执行诊断命令': 'Run diagnostic command',
+    '网络诊断': 'Network diagnostics',
+    '查看进程': 'View processes',
+    '系统信息': 'System information',
+    '查看服务': 'View services',
+    '打开文件': 'Open file',
+    '打开程序': 'Launch program',
+    '屏幕截图': 'Screenshot',
+    '更新任务清单': 'Update task list',
+    '查看窗口': 'View windows',
+    '读取界面': 'Read UI',
+    '查找控件': 'Find control',
+    '操作界面': 'Operate UI',
+    '交还控制权': 'Release control',
+    '删除文件': 'Delete file',
+    '查找文件': 'Find files',
+    '联网搜索': 'Web search',
+    '读取网页': 'Read web page',
+    '向你提问': 'Ask you',
+    '发送通知': 'Send notification',
+    '执行命令': 'Run command',
+    '创建定时任务': 'Create scheduled task',
+    '查看定时任务': 'View scheduled tasks',
+    '取消定时任务': 'Cancel scheduled task',
+    '工具结果：{text}': 'Tool result: {text}',
+    '调用工具：{name}': 'Calling tool: {name}',
+    '本轮改动 {n} 个文件': 'Changed {n} file(s) this round',
+    '无变化': 'No changes',
+    '已创建': 'Created',
+    '创建中…': 'Creating…',
+    '创建失败': 'Creation failed',
+    '成功': 'Success',
+    '失败': 'Failed',
+    '工具': 'Tool',
+
+    /* 快捷键弹窗 */
+    '发送消息': 'Send message',
+    '换行': 'New line',
+    '收起 / 展开侧栏': 'Collapse / expand sidebar',
+    '命令与文件引用': 'Commands and file references',
+    '快捷键帮助': 'Shortcut help',
+    '全屏': 'Fullscreen',
+    '唤起主窗': 'Open main window',
+    '关闭弹窗 / 取消': 'Close dialog / cancel',
+
+    /* 文件面板 */
+    '点击右侧文件预览': 'Click a file on the right to preview',
+    '还没有打开文件': 'No file open yet',
+    '从右侧列表选择一个文件，或直接拖进来': 'Pick a file from the list, or drop one here',
+    '搜索文件': 'Search files',
+    '清除搜索': 'Clear search',
+    '没有匹配的文件': 'No matching files',
+    '换个关键词试试': 'Try a different keyword',
+    '新建标签页': 'New tab',
+    '编辑器': 'Editor',
+    '浏览器': 'Browser',
+    '终端': 'Terminal',
+    '文本': 'Text',
+    '图片': 'Image',
+    '网页': 'Web page',
+    '命令提示符': 'Command Prompt',
+    '在浏览器中打开': 'Open in browser',
+    '支持 Markdown、文本、图片与网页': 'Supports Markdown, text, images, and web pages',
+    '也可以把文件直接拖到这里': 'You can also drag files here',
+    '刷新文件列表': 'Refresh file list',
+    '关闭面板': 'Close panel',
+    '编辑': 'Edit',
+    '保存': 'Save',
+    '已保存': 'Saved',
+    'Markdown 源码': 'Markdown source',
+    'Markdown 视图': 'Markdown view',
+    '渲染': 'Rendered',
+    '实时预览': 'Live preview',
+    '行': 'lines',
+    '字符': 'chars',
+    '浏览器预览': 'Browser preview',
+    '在浏览器中查看渲染效果': 'View rendered result in browser',
+    '上一页': 'Previous page',
+    '下一页': 'Next page',
+    '缩小': 'Zoom out',
+    '放大': 'Zoom in',
+    '图表': 'Chart',
+    '幻灯片': 'Slides',
+    '就绪': 'Ready',
+    '待保存': 'Unsaved',
+    '新建工作表': 'New worksheet',
+    '单击选中 · 双击编辑': 'Click to select · double-click to edit',
+    '已完成': 'Completed',
+    '延时任务 · 下次 {time}': 'One-off · next {time}',
+    '执行于 {time}': 'Ran at {time}',
+    '一次性': 'One-off',
+    '选择厂商': 'Choose a provider',
+    '已配置': 'Configured',
+    '未配置': 'Not configured',
+    '当前使用': 'In use',
+    '收起': 'Collapse',
+    '可用模型': 'Available models',
+    '添加': 'Add',
+    '刷新可用模型': 'Refresh models',
+    '设为当前': 'Use this provider',
+    '清除 Key': 'Clear key',
+    '显示名称': 'Display name',
+    '接口协议': 'API protocol',
+    '厂商文档': 'Provider docs',
+    '获取 API Key': 'Get an API key',
+    '移除': 'Remove',
+    '还没有模型，点「刷新可用模型」或手动添加':
+      'No models yet. Refresh the list or add one manually.',
+    '点「刷新可用模型」或手动添加': 'Refresh the list or add one manually.',
+    '保存中…': 'Saving…',
+    '已保存': 'Saved',
+    '已保存并设为当前': 'Saved and set as active',
+    '已设为当前模型厂商': 'This provider is now active',
+    '厂商配置已保存': 'Provider settings saved',
+    '测试中…': 'Testing…',
+    '读取模型列表…': 'Loading models…',
+    '读取失败': 'Failed to load',
+    '接口没有返回模型': 'The endpoint returned no models',
+    '读取到 {n} 个模型，保存后生效': 'Loaded {n} models. Save to apply.',
+    '读取到 {n} 个模型': 'Loaded {n} models',
+    '确定清除这个厂商的 API Key 吗？': 'Clear the API key for this provider?',
+    '已清除 Key': 'API key cleared',
+    '还没有可用的模型，去配置': 'No model available yet. Configure one.',
+    '已切换到 {provider} · {name}': 'Switched to {provider} · {name}',
+    '这个厂商还没有配置 API Key': 'This provider has no API key yet',
+    '未知的模型厂商': 'Unknown model provider',
+    '自定义厂商需要填写接口地址': 'A custom provider needs a base URL',
+    'OpenAI / Anthropic 兼容接口': 'OpenAI / Anthropic compatible endpoint',
+    '已加密保存': 'Saved with encryption',
+    '已加密保存，留空表示不修改': 'Saved encrypted. Leave blank to keep it.',
+    '配置好了，可以继续选其他厂商。': 'Saved. You can configure another provider.',
+    '先配置一家厂商，或者点下面的“稍后配置”。':
+      'Configure one provider first, or choose “Configure later”.',
+    '选一家或多家厂商，填好 API Key 就能用；之后可以在设置里随时切换。':
+      'Pick one or more providers and enter their API keys. You can switch anytime in Settings.',
+    '可同时配置多家厂商，主界面随时切换模型':
+      'Configure multiple providers at once and switch models from the chat.',
+    '你的称呼、助手名称与界面语言': 'Your name, assistant name, and interface language',
+    '决定我能做多少事、哪些操作需要你确认':
+      'How much I can do and which actions need your confirmation',
+    '唤起方式、语音模型与开机启动': 'Launch shortcuts, voice model, and startup',
+    '提醒、主题与强调色': 'Alerts, theme, and accent color',
+    '输出目录、历史与重置': 'Output folder, history, and reset',
+    '后端、整个应用与系统的实时占用': 'Live usage of the backend, app, and system',
+    '版本、数据目录与更新': 'Version, data folder, and updates',
+    '档位、占用与自动压缩': 'Context size, usage, and auto-compression',
+    '生成参数': 'Generation parameters',
+    '还没有可用的模型，去配置': 'No model available. Configure one.',
+    '连接正常：{text}': 'Connected: {text}',
+    '连接成功：{text}': 'Connected: {text}',
+    '还没有选择模型': 'No model selected',
+    '读取模型列表失败（HTTP {code}）': 'Failed to load models (HTTP {code})',
+    '读取模型列表失败：{error}': 'Failed to load models: {error}',
+    '未知厂商：{id}': 'Unknown provider: {id}',
+    '定时任务开始：{title}': 'Scheduled task started: {title}',
+    '定时任务完成：{title}': 'Scheduled task finished: {title}',
+    '读取幻灯片失败': 'Failed to load slide',
+    '文本级编辑：只改文字，原有字体、颜色、图片与表格保持不变':
+      'Text-level editing: changes text only. Fonts, colors, images, and tables are kept.',
+    '单击单元格编辑，Enter 跳到下一行；保存会直接写回原工作簿，图表与图片不受影响':
+      'Click a cell to edit; Enter moves down. Saving writes back directly and keeps charts and images.',
+    '拖入的文件无法直接保存，请从文件列表打开':
+      'Dropped files cannot be saved directly. Open it from the file list.',
+    '在无痕浏览器打开': 'Open in private browser',
+    '输入网址或本地 HTML 路径': 'URL or local HTML path',
+    '请输入网址或本地 HTML 路径': 'Enter a URL or local HTML path',
+    '已在无痕窗口打开：{url}': 'Opened in a private window: {url}',
+    '读取文件列表失败': 'Failed to load file list',
+    '输出目录还没有文件': 'No files in the output folder yet',
+    '模型生成的文件会出现在这里': 'Files generated by the model will appear here',
+    '该类型暂不支持预览': 'Preview is not supported for this type',
+    '暂不支持预览该类型': 'Preview is not supported for this type',
+    '无法预览': 'Cannot preview',
+    '窗口太窄，先放大窗口再看文件面板':
+      'The window is too narrow. Enlarge it to use the file panel.',
+    '窗口太窄，先放大窗口再看预览':
+      'The window is too narrow. Enlarge it to preview files.',
+    '用默认程序打开': 'Open with default app',
+    '预览': 'Preview',
+
+    /* 设置页 */
+    '偏好设置': 'Preferences',
+    '模型、推理、快捷键与本地数据': 'Model, reasoning, shortcuts, and local data',
+    '账号与语言': 'Account and language',
+    '头像': 'Avatar',
+    '昵称': 'Display name',
+    '本地身份': 'Local identity',
+    '界面语言': 'Interface language',
+    '界面语言 / Language': 'Interface language',
+    '简体中文': 'Chinese (Simplified)',
+    'English': 'English',
+    '跟随系统': 'Follow system',
+    '模型与 API': 'Model and API',
+    '接口地址': 'API URL',
+    '模型名称': 'Model name',
+    'API Key': 'API Key',
+    '已加密保存，留空表示不修改': 'Encrypted at rest. Leave blank to keep the current key.',
+    '测试连接': 'Test connection',
+    '显示 API 错误详情': 'Show API error details',
+    '展示 HTTP 状态码与服务端原始错误，便于排查。':
+      'Show the HTTP status code and raw server error for troubleshooting.',
+    '高级参数': 'Advanced',
+    '思考模式': 'Thinking mode',
+    '自动（模型决定）': 'Auto (model decides)',
+    '始终思考': 'Always think',
+    '开启': 'On',
+    '关闭': 'Off',
+    '高（更快）': 'High (faster)',
+    '最高（更深入）': 'Max (deeper)',
+    '请求超时（秒）': 'Request timeout (seconds)',
+    '最大输出 tokens': 'Max output tokens',
+    '密钥用 Windows DPAPI 加密后保存在本机，不会明文写入配置文件。':
+      'The key is encrypted with Windows DPAPI and never stored in plain text.',
+    '上下文': 'Context',
+    '上下文上限': 'Context limit',
+    '上下文档位': 'Context size',
+    '128K': '128K',
+    '1M': '1M',
+    '自定义': 'Custom',
+    '自动压缩上下文': 'Automatically compress context',
+    '当前约 {used} / {limit} tokens': 'About {used} / {limit} tokens',
+    '立即压缩上下文': 'Compress now',
+    '达到档位 50% 时，自动把整个会话统一总结成一份摘要；关闭后仍可手动压缩，达到 100% 才会截断最早消息。会话越长，摘要可能遗漏更早的细节。':
+      'At 50% of the selected size, the whole conversation is summarized into one summary. When off, you can still compress manually; earliest messages are only trimmed at 100%. The longer the conversation, the more early detail the summary may lose.',
+    '压缩': 'Compress',
+    '压缩中…': 'Compressing…',
+    '压缩上下文': 'Compress context',
+    '上下文已用 {pct}%，点击压缩': 'Context {pct}% used. Click to compress.',
+    '已把 {n} 条消息压缩为摘要': 'Compressed {n} messages into a summary',
+    '压缩失败：{msg}': 'Compression failed: {msg}',
+    '当前会话还没有可压缩的内容': 'There is nothing to compress yet',
+    '请先打开一个会话': 'Open a conversation first',
+    '上下文已压缩，历史已统一为摘要': 'Context compressed. The conversation is now a summary.',
+    '性能': 'Performance',
+    '性能与资源': 'Performance & resources',
+    '后端进程': 'Backend process',
+    '整个应用': 'Whole app',
+    '内存': 'Memory',
+    '线程': 'Threads',
+    '进程': 'Processes',
+    '系统': 'System',
+    '刷新': 'Refresh',
+    '上次对话：—': 'Last run: —',
+    '上次对话：平均 CPU {cpu} · 用时 {sec}s · 结束时内存 {mem}':
+      'Last run: avg CPU {cpu} · {sec}s · {mem} at end',
+    '更新于 {time}': 'Updated at {time}',
+    'CPU 为逻辑核心归一化后的占用率；整个应用包含 WebView2 子进程。':
+      'CPU is normalized by logical cores. The whole app includes WebView2 child processes.',
+    '运行时模式': 'Runtime mode',
+    '模式': 'Mode',
+    '安全（只读，不修改文件、不执行命令）': 'Safe (read-only, no file changes or commands)',
+    '监管（执行命令和运行程序需要你同意，写文件不需要）':
+      'Supervised (commands and program launches need your approval; file writes do not)',
+    '全部下放（自主执行任何命令，风险由你承担）':
+      'Full access (autonomous execution; you bear the risk)',
+    '安全模式只保留读取类工具；监管模式在执行命令、运行程序和修改系统前询问你，写入文件不询问；全部下放不再询问，由你承担全部责任。':
+      'Safe mode keeps read-only tools only. Supervised asks before commands, program launches, and system changes, but not before file writes. Full access stops asking; you take full responsibility.',
+    '快捷键与启动': 'Shortcuts and startup',
+    '语音输入快捷键': 'Voice shortcut',
+    '本地语音模型': 'Local voice model',
+    '检查中…': 'Checking…',
+    '已就绪 · SenseVoice 本地识别': 'Ready · SenseVoice local recognition',
+    '未下载（约 228MB）': 'Not downloaded (about 228 MB)',
+    '下载模型': 'Download model',
+    '下载中…': 'Downloading…',
+    '开机自动启动': 'Launch at login',
+    '创建桌面快捷方式': 'Create desktop shortcut',
+    '语音输入使用本地 SenseVoice 模型，识别语言跟随音频内容。':
+      'Voice input uses the local SenseVoice model; the language follows the audio.',
+    '通知与外观': 'Notifications and appearance',
+    '回复完成通知': 'Notify when a reply is ready',
+    '主窗口不在前台时，通过系统托盘提醒。':
+      'Use a tray notification when the main window is not in the foreground.',
+    '主题': 'Theme',
+    '浅色': 'Light',
+    '深色': 'Dark',
+    '强调色': 'Accent color',
+    '蓝': 'Blue',
+    '绿': 'Green',
+    '紫': 'Violet',
+    '橙': 'Orange',
+    '文件与数据': 'Files and data',
+    '输出目录': 'Output folder',
+    '默认在数据目录下的 files': 'Defaults to the files folder in the data directory',
+    '选择': 'Choose',
+    '打开数据目录': 'Open data folder',
+    '清空对话历史': 'Clear chat history',
+    '删除本机保存的全部对话、工具记录和文件记录，无法恢复。':
+      'Delete all locally stored chats, tool records, and file records. This cannot be undone.',
+    '恢复默认设置': 'Restore default settings',
+    '保留 API Key、账号资料和对话历史，只重置偏好。':
+      'Keep the API key, profile, and history; reset preferences only.',
+    '关于与更新': 'About and updates',
+    '版本': 'Version',
+    '数据目录': 'Data folder',
+    'GitHub 仓库': 'GitHub repository',
+    'owner/repo，例如 yourname/nexus': 'owner/repo, for example yourname/nexus',
+    '更新服务地址': 'Update service URL',
+    'https://example.com，读取该地址下的 update.json': 'https://example.com, reads update.json from there',
+    '填写更新服务地址后，优先读取该地址的 update.json 并从中下载安装包；留空则回退到 GitHub Releases。':
+      'When set, Nexus reads update.json from this address and downloads the installer from there; leave empty to fall back to GitHub Releases.',
+    '模拟更新：只下载并校验安装包，不执行安装。':
+      'Simulated update: downloads and verifies the package without installing.',
+    '模拟更新完成：安装包已下载并通过校验，未执行安装。':
+      'Simulated update finished: the package was downloaded and verified; the installer was not run.',
+    '更新包已保存：': 'Update package saved: ',
+    '自动检查更新': 'Check for updates automatically',
+    '立即检查': 'Check now',
+    '重新打开新手引导': 'Open onboarding again',
+    'Nexus 不会在未经确认的情况下修改系统设置；所有操作都会记录在本地日志里。':
+      'Nexus never changes system settings without confirmation. All actions are logged locally.',
+    '保存设置': 'Save settings',
+    '设置已保存': 'Settings saved',
+    '保存失败': 'Save failed',
+
+    /* 引导 */
+    '欢迎使用 Nexus': 'Welcome to Nexus',
+    '先花一分钟完成基础设置，之后随时可以在设置里修改。':
+      'Take a minute to set the basics. You can change everything later in Settings.',
+    '下一步': 'Next',
+    '上一步': 'Back',
+    '完成': 'Finish',
+    '跳过': 'Skip',
+    '开始使用': 'Get started',
+    '你的称呼': 'Your name',
+    '怎么称呼你？': 'What should Nexus call you?',
+    '选择你喜欢的头像和颜色。': 'Choose an avatar and color.',
+    '配置模型': 'Configure the model',
+    '填写 API Key 后即可开始对话；也可以先跳过，稍后在设置里配置。':
+      'Enter an API key to start chatting, or skip and configure it later in Settings.',
+    '获取 API Key': 'Get an API key',
+    '测试连接中…': 'Testing…',
+    '连接成功': 'Connection successful',
+    '稍后配置': 'Configure later',
+    '启动偏好': 'Startup preferences',
+    '开机时自动启动 Nexus': 'Launch Nexus at login',
+    '首次使用提示': 'First-run guide',
+    '跳过引导': 'Skip guide',
+
+    /* 新功能页 */
+    '本次更新': 'What’s new',
+    '更清爽的设置中心': 'A cleaner Settings center',
+    '设置按账号、模型、上下文、外观、数据和更新重新分组，不再堆在一起。':
+      'Settings are now grouped by account, model, context, appearance, data, and updates.',
+    '全界面中英文切换': 'Full Chinese/English interface',
+    '主界面、设置、历史、快捷浮窗、托盘菜单和引导页都支持双语。':
+      'The main window, Settings, History, quick panel, tray menu, and onboarding are bilingual.',
+    '首次使用引导': 'First-run onboarding',
+    '独立的引导窗口，带你配置语言、账号和 API Key。':
+      'A separate onboarding window guides you through language, profile, and API key setup.',
+    '上下文自动压缩': 'Automatic context compression',
+    '128K / 1M 两档，实时显示占用；达到 50% 自动把整个会话统一总结为摘要，也可随时手动压缩。':
+      '128K / 1M tiers with live usage; at 50% the whole conversation becomes one summary, and you can compress manually anytime.',
+    '更清楚的 API 报错': 'Clearer API errors',
+    '可以直接展开查看 HTTP 状态码与服务端返回内容。':
+      'Expand an error to see the HTTP status code and server response.',
+    '自动检查更新': 'Automatic update checks',
+    '从 GitHub Releases 检查新版本，可立即更新或暂不更新。':
+      'Check GitHub Releases for new versions; update now or postpone.',
+    '本地账号资料': 'Local profile',
+    '昵称、头像和配色只保存在本机，不联网。':
+      'Your name, avatar, and color stay on this PC.',
+    '以后再说': 'Later',
+
+    /* 更新 */
+    '发现新版本': 'Update available',
+    '当前版本': 'Current version',
+    '最新版本': 'Latest version',
+    '更新内容': 'Release notes',
+    '立即更新': 'Update now',
+    '暂不更新': 'Not now',
+    '打开 GitHub 发布页': 'Open GitHub release',
+    '正在下载更新…': 'Downloading update…',
+    '正在安装，Nexus 即将退出…': 'Installing. Nexus will exit shortly…',
+    '更新失败：{msg}': 'Update failed: {msg}',
+    '检查更新': 'Check for updates',
+    '已是最新版本': 'You are up to date',
+    '检查更新失败：{msg}': 'Update check failed: {msg}',
+    '还没有配置 GitHub 更新仓库，请在设置中填写 owner/repo。':
+      'No GitHub repository configured. Enter owner/repo in Settings.',
+    '已跳过这个版本': 'This version was skipped',
+
+    /* 通知 */
+    '回答已完成': 'Reply ready',
+    'Nexus 已完成本次回答': 'Nexus finished the reply',
+    '已清空界面': 'View cleared',
+    '已开始新对话': 'New chat started',
+    '正在截图…': 'Capturing…',
+    '截图失败': 'Screenshot failed',
+    '已跳过': 'Skipped',
+    '超过 8MB，已跳过': 'Skipped because it is larger than 8 MB',
+    '请看看附件': 'Please look at the attachment',
+    '已识别语音': 'Voice recognized',
+    '没有识别到内容': 'No speech recognized',
+    '语音模型已就绪，再按一次麦克风开始':
+      'Voice model ready. Press the microphone again to start.',
+    '语音模型下载中 {p}%': 'Voice model downloading {p}%',
+    '已开始下载语音模型': 'Voice model download started',
+    '请拖动鼠标框选区域，Esc 取消…': 'Drag to select a region. Press Esc to cancel.',
+    '正在识别…': 'Recognizing…',
+    '正在截图…': 'Capturing…',
+    '选择本地文件…': 'Choose a local file…',
+    '打开失败': 'Open failed',
+    '切换失败': 'Switch failed',
+    '切换模型失败': 'Failed to switch model',
+    '模型已切换为 {name}': 'Model switched to {name}',
+    '推理强度：{name}': 'Reasoning effort: {name}',
+    '已切换到浅色': 'Switched to light theme',
+    '已切换到深色': 'Switched to dark theme',
+    '连接正常：{text}': 'Connected: {text}',
+
+    /* 补充：设置 / 引导 / 更新 */
+    '本地用户': 'Local user',
+    '正在压缩上下文…': 'Compressing context…',
+    '上下文已压缩，早期对话已生成摘要': 'Context compressed. Earlier messages were summarized.',
+    '上下文压缩失败：{msg}': 'Context compression failed: {msg}',
+    '上下文已达上限，较早消息已省略': 'Context limit reached. Earlier messages were omitted.',
+    '正在压缩': 'Compressing',
+    '已清空对话历史': 'Chat history cleared',
+    '已恢复默认设置': 'Default settings restored',
+    '确定要清空全部对话历史吗？此操作无法恢复。':
+      'Clear all chat history? This cannot be undone.',
+    '确定恢复默认设置吗？API Key、账号资料和历史记录会保留。':
+      'Restore default settings? Your API key, profile, and history will be kept.',
+    '检查中…': 'Checking…',
+    '测试连接中…': 'Testing…',
+    '请先填写 API Key': 'Enter an API key first',
+    '新的 Nexus，更清楚也更好用': 'A clearer, more polished Nexus',
+    '这次更新主要整理界面、补齐中英文，并把上下文和更新流程做得更透明。':
+      'This update reorganizes the interface, adds English, and makes context and updates more transparent.',
+    '只保留悬浮球': 'Floating orb only',
+    '桌面宠物已移除，悬浮球保持轻量、稳定、不占任务栏。':
+      'The desktop pet is gone. The floating orb stays light, stable, and out of the taskbar.',
+    '所有偏好都可以在设置里随时修改。': 'All preferences can be changed in Settings at any time.',
+    '最后一点偏好': 'A few final preferences',
+    '这些都可以在设置里随时修改。': 'You can change all of these later in Settings.',
+    '连接你的模型': 'Connect your model',
+    '正在录音': 'Recording',
+    '已截图，输入问题后发送': 'Screenshot ready. Add a question and send.',
+    'Enter 发送 · Esc 关闭': 'Enter to send · Esc to close',
+    '语音模型正在下载，请稍候…': 'The voice model is downloading. Please wait…',
+    '语音模型未下载，点击麦克风开始下载':
+      'The voice model is not downloaded. Click the microphone to start.',
+    '语音模型未就绪，正在下载 {p}%': 'Voice model not ready. Downloading {p}%',
+    '语音模型下载失败，请检查网络后重试':
+      'Voice model download failed. Check your network and try again.',
+    '正在识别…': 'Recognizing…',
+    '问我任何事…': 'Ask me anything…',
+    '语音输入（再按结束）': 'Voice input (press again to stop)',
+    '移除截图': 'Remove screenshot',
+    '还没有配置 GitHub 更新仓库，请在设置中填写 owner/repo。':
+      'No GitHub update repository configured. Enter owner/repo in Settings.',
+    '留空则不检查更新；更新包命名需与构建产物一致。':
+      'Leave empty to disable update checks. Asset names must match the build output.',
+    '下载中…': 'Downloading…',
+    '正在安装…': 'Installing…',
+
+    /* 引导角色与头像 */
+    '我该怎么称呼你？': 'What should I call you?',
+    '给你自己选个头像': 'Choose your avatar',
+    '上传一张图片，或者先使用默认头像。':
+      'Upload an image, or start with the default avatar.',
+    '上传图片': 'Upload image',
+    '使用默认': 'Use default',
+    '支持 PNG / JPG / WebP，最大 8MB；会裁成正方形。':
+      'PNG / JPG / WebP, up to 8 MB. Images are cropped to a square.',
+    '自定义头像': 'Custom avatar',
+    '默认头像': 'Default avatar',
+    '先认识一下。我该怎么称呼你？界面用哪种语言？':
+      'First, let’s get acquainted. What should I call you, and which language should the interface use?',
+    '选一张头像吧。可以上传图片，也可以先用默认的。':
+      'Pick an avatar. Upload an image, or use the default for now.',
+    '界面语言已切换。': 'Interface language updated.',
+    '先用默认头像，之后随时可以换。':
+      'Using the default avatar. You can change it anytime.',
+    '请选择 PNG、JPG 或 WebP 图片。': 'Choose a PNG, JPG, or WebP image.',
+    '图片不能超过 8MB。': 'The image must be 8 MB or smaller.',
+    '头像选好了。': 'Avatar selected.',
+    '无法读取这张图片。': 'Could not read this image.',
+    '无法读取这张图片': 'Could not read this image',
+    '头像组件未加载': 'The avatar component did not load',
+    '已选择默认头像，保存后生效': 'Default avatar selected. Save to apply.',
+    '仅支持 PNG / JPG / WebP 图片': 'Only PNG / JPG / WebP images are supported.',
+    '图片不能超过 8MB': 'The image must be 8 MB or smaller.',
+    '头像已选择，保存后生效': 'Avatar selected. Save to apply.',
+
+    /* 模型分步与助手身份 */
+    '我会一步一步带你完成；也可以先跳过，稍后在设置里配置。':
+      'I’ll walk you through it step by step. You can also skip and configure it later in Settings.',
+    '1 地址': '1 Address',
+    '2 密钥': '2 Key',
+    '3 测试': '3 Test',
+    '稍后配置，先继续': 'Configure later, continue',
+    '先确认接口地址。用 DeepSeek 的话直接继续。':
+      'First, check the API address. With DeepSeek, you can continue as is.',
+    '把 API Key 粘贴进来。没有的话可以先跳过。':
+      'Paste your API key. If you don’t have one yet, you can skip.',
+    '确认没问题后，点右下角“测试并继续”。':
+      'When ready, click “Test and continue” at the bottom right.',
+    '测试并继续': 'Test and continue',
+    '接口地址需要以 http:// 或 https:// 开头。':
+      'The API address must start with http:// or https://.',
+    '先填一下模型名称。': 'Enter the model name first.',
+    '还没有填 API Key。也可以点下面的“稍后配置”。':
+      'No API key yet. You can also choose “Configure later” below.',
+    '连接成功，记住你了。': 'Connected. I’ll remember that.',
+    '这次没连上。检查一下地址或 Key，再试一次。':
+      'Could not connect. Check the address or key and try again.',
+    '连接失败': 'Connection failed',
+    '没问题，之后可以在设置里继续配置。':
+      'No problem. You can finish configuring it later in Settings.',
+    '助手身份': 'Assistant identity',
+    '请称呼我': 'What should I be called?',
+    '给我起个名字，并确认我该怎么称呼你。':
+      'Give me a name, and confirm how I should address you.',
+    '我会这样称呼你': 'I will call you',
+    '你可以这样叫我': 'You can call me',
+    '我会称呼你为「{user}」，你可以叫我「{assistant}」。':
+      'I’ll call you “{user}”, and you can call me “{assistant}”.',
+    '这两个称呼会写入系统提示词，之后我会一直这样称呼你。':
+      'These names are written into the system prompt, so I’ll keep using them.',
+    '助手名称': 'Assistant name',
+    '我是{name}，有什么可以帮你？': 'I’m {name}. What can I help you with?',
+    '先告诉我该怎么称呼你。': 'First, tell me what I should call you.',
+    '保存失败了，再试一次。': 'Save failed. Please try again.',
+    '再看一眼外观。主题、强调色和开机启动都可以现在定。':
+      'One more look at appearance. Set the theme, accent color, and launch-at-login now.',
+    '最后一步。请称呼我——你想叫我什么？':
+      'Last step. What would you like to call me?'
+  };
+
+  let lang = 'zh';
+
+  function t(key) {
+    if (lang !== 'en') return key;
+    return Object.prototype.hasOwnProperty.call(EN, key) ? EN[key] : key;
+  }
+
+  function tf(key, vars) {
+    let out = t(key);
+    const data = vars || {};
+    Object.keys(data).forEach(function (name) {
+      out = out.split('{' + name + '}').join(String(data[name]));
+    });
+    return out;
+  }
+
+  function apply(root) {
+    const scope = root || document;
+    scope.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    scope.querySelectorAll('[data-i18n-html]').forEach(function (el) {
+      el.innerHTML = t(el.getAttribute('data-i18n-html'));
+    });
+    scope.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+    });
+    scope.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+      el.setAttribute('title', t(el.getAttribute('data-i18n-title')));
+    });
+    scope.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+    });
+  }
+
+  function setLang(next) {
+    lang = next === 'en' ? 'en' : 'zh';
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+    apply(document);
+    try {
+      window.dispatchEvent(new CustomEvent('nexus:lang', { detail: lang }));
+    } catch (e) { /* ignore */ }
+  }
+
+  window.NexusI18n = {
+    t: t,
+    tf: tf,
+    apply: apply,
+    setLang: setLang,
+    get lang() { return lang; },
+    dict: EN
+  };
+})();

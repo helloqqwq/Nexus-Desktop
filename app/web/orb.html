@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>NexusOrb</title>
+  <style>
+    :root { --accent: #4176e6; --warn: #f59e0b; --error: #ef4444; --ink: #0f1115; --lx: 0px; --ly: 0px; }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; width: 100%; height: 100%; overflow: hidden;
+      background: #fff; user-select: none; cursor: default;
+      border-radius: 50%;
+    }
+    body { display: grid; place-items: center; }
+
+    /* 窗口本身被 Win32 裁成圆形，这里让白色球面铺满整个窗口 */
+    .stage {
+      position: relative; width: 100%; height: 100%; border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 22%, #ffffff, #fbfcfe 62%, #f3f5f8 100%);
+      border: 1px solid var(--ink);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,.9), inset 0 -3px 6px rgba(16,24,40,.05);
+      display: grid; place-items: center;
+      transition: filter .16s ease, transform .18s ease;
+    }
+    .stage:hover { filter: brightness(1.03); }
+    .stage:active { filter: brightness(.97); }
+
+    /* 中心标志环 */
+    .ring {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1px solid rgba(15,17,21,.82);
+      position: relative; transition: transform .18s ease;
+      animation: ring-breathe 4.2s ease-in-out infinite;
+    }
+    .stage:hover .ring { transform: scale(1.1); }
+    .ring::after {
+      content: ""; position: absolute; inset: 4px; border-radius: 50%;
+      border: 1px solid rgba(15,17,21,.14);
+    }
+
+    .dot {
+      position: absolute; right: 7px; bottom: 8px; width: 5px; height: 5px;
+      border-radius: 50%; background: var(--accent);
+      box-shadow: 0 0 0 1px #fff;
+      transition: background .2s ease;
+    }
+
+    body[data-status="thinking"] .dot { background: var(--warn); animation: pulse .9s infinite; }
+    body[data-status="working"] .dot { background: var(--accent); animation: pulse .9s infinite; }
+    body[data-status="error"] .dot { background: var(--error); }
+    body[data-status="thinking"] .ring { animation: breathe 1.8s ease-in-out infinite; }
+    body[data-status="working"] .ring { animation: spin 3.2s linear infinite; }
+    body[data-status="error"] .stage { border-color: var(--error); }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0); }
+      50% { transform: translateY(-2px) rotate(-1deg); }
+    }
+    @keyframes ring-breathe { 0%,100% { box-shadow: 0 0 0 0 rgba(65,118,230,0); } 50% { box-shadow: 0 0 0 2px rgba(65,118,230,.08); } }
+    @keyframes breathe { 0%,100% { transform: scale(.96); opacity: .7; } 50% { transform: scale(1.06); opacity: 1; } }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+    @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+    @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.08); } }
+    @keyframes wag { 0%,100% { transform: rotate(-10deg); } 50% { transform: rotate(16deg); } }
+    @keyframes ear-twitch {
+      0%, 88%, 100% { transform: rotate(0); }
+      90% { transform: rotate(-8deg); }
+      93% { transform: rotate(5deg); }
+      96% { transform: rotate(-3deg); }
+    }
+    @keyframes sway { 0%,100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+    @keyframes hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3.5px); } }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-2.5px); } 75% { transform: translateX(2.5px); } }
+    @keyframes spark-pulse { 0%,100% { transform: scale(1); opacity: .8; } 50% { transform: scale(1.35); opacity: 1; } }
+    @keyframes pop {
+      0% { transform: scale(1); }
+      35% { transform: scale(.9, 1.08); }
+      70% { transform: scale(1.07, .94); }
+      100% { transform: scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body data-status="idle">
+  <div class="stage" id="stage" title="Nexus（左键打开，右键菜单，拖动移动）">
+    <div class="ring"></div>
+    <span class="dot"></span>
+  </div>
+  <script>
+    (function () {
+      var stage = document.getElementById('stage');
+      var moved = 0;
+      var lastX = 0, lastY = 0, dragging = false;
+      var lookTimer = null;
+      var api = function () { return window.pywebview && window.pywebview.api; };
+
+      function call(name, arg1, arg2) {
+        var a = api();
+        if (!a || !a[name]) return Promise.resolve(null);
+        try {
+          if (arg2 !== undefined) return a[name](arg1, arg2);
+          if (arg1 !== undefined) return a[name](arg1);
+          return a[name]();
+        } catch (e) { return Promise.resolve(null); }
+      }
+
+      function setLook(x, y) {
+        document.documentElement.style.setProperty('--lx', x.toFixed(2) + 'px');
+        document.documentElement.style.setProperty('--ly', y.toFixed(2) + 'px');
+      }
+
+      function scheduleLook() {
+        clearTimeout(lookTimer);
+        lookTimer = setTimeout(function () {
+          setLook((Math.random() * 2 - 1) * 1.6, Math.random() * 0.8);
+          lookTimer = setTimeout(function () {
+            setLook(0, 0);
+            scheduleLook();
+          }, 900 + Math.random() * 900);
+        }, 4200 + Math.random() * 4200);
+      }
+
+      stage.addEventListener('pointermove', function (e) {
+        if (!dragging) {
+          var r = stage.getBoundingClientRect();
+          var dx = (e.clientX - r.left - r.width / 2) / (r.width / 2);
+          var dy = (e.clientY - r.top - r.height / 2) / (r.height / 2);
+          setLook(Math.max(-1, Math.min(1, dx)) * 1.8,
+                  Math.max(-1, Math.min(1, dy)) * 1.4);
+        }
+        if (!dragging) return;
+        var mx = e.screenX - lastX;
+        var my = e.screenY - lastY;
+        moved += Math.abs(mx) + Math.abs(my);
+        lastX = e.screenX; lastY = e.screenY;
+        if (moved > 4) call('orb', 'drag_move');
+      });
+
+      stage.addEventListener('pointerleave', function () {
+        setLook(0, 0);
+        scheduleLook();
+      });
+
+      stage.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dragging = true;
+        moved = 0;
+        lastX = e.screenX; lastY = e.screenY;
+        try { stage.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        call('orb', 'drag_start');
+      });
+
+      function end() {
+        if (!dragging) return;
+        dragging = false;
+        call('orb', 'drag_end');
+        if (moved <= 4) {
+          document.body.classList.add('pop');
+          setTimeout(function () { document.body.classList.remove('pop'); }, 340);
+          call('orb', 'click');
+        }
+      }
+      stage.addEventListener('pointerup', end);
+      stage.addEventListener('pointercancel', end);
+
+      stage.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        var scale = window.devicePixelRatio || 1;
+        call('orb', 'menu', {
+          x: Math.round(e.screenX * scale),
+          y: Math.round(e.screenY * scale)
+        });
+      });
+
+      window.Nexus = {
+        onEvent: function (evt) {
+          if (!evt) return;
+          if (evt.type === 'state' && evt.status) {
+            document.body.setAttribute('data-status', evt.status);
+          }
+        }
+      };
+
+      function boot() {
+        if (!api()) { window.addEventListener('pywebviewready', boot, { once: true }); return; }
+        scheduleLook();
+      }
+      if (window.pywebview && window.pywebview.api) boot();
+      else window.addEventListener('pywebviewready', boot, { once: true });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-accent="blue">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nexus · 首次使用</title>
+  <link rel="stylesheet" href="assets/setup.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-mark"></span>Nexus</div>
+      <span class="spacer"></span>
+      <button class="close" id="closeBtn" title="Skip">×</button>
+    </header>
+
+    <main class="content narrow" id="content">
+      <div class="guide">
+        <div class="guide-orb" id="guideOrb" aria-hidden="true">
+          <span class="guide-ring"></span>
+          <span class="guide-spin">
+            <span class="guide-trail t3"><i></i></span>
+            <span class="guide-trail t2"><i></i></span>
+            <span class="guide-trail t1"><i></i></span>
+            <span class="guide-dot"></span>
+          </span>
+        </div>
+        <div class="guide-copy">
+          <div class="guide-name" id="guideName">Nexus</div>
+          <div class="guide-bubble" id="guideBubble" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <section class="step" data-step="0">
+        <div class="kicker" data-i18n="首次使用提示">首次使用提示</div>
+        <h1 data-i18n="欢迎使用 Nexus">欢迎使用 Nexus</h1>
+        <p class="lead" data-i18n="先花一分钟完成基础设置，之后随时可以在设置里修改。">先花一分钟完成基础设置，之后随时可以在设置里修改。</p>
+
+        <div class="panel">
+          <div class="panel-title" data-i18n="账号与语言">账号与语言</div>
+          <label class="field"><span data-i18n="界面语言 / Language">界面语言 / Language</span>
+            <select id="langSelect">
+              <option value="zh">简体中文</option>
+              <option value="en">English</option>
+              <option value="system" data-i18n="跟随系统">跟随系统</option>
+            </select>
+          </label>
+          <label class="field"><span data-i18n="我该怎么称呼你？">我该怎么称呼你？</span>
+            <input id="nameInput" type="text" maxlength="32" placeholder="例如：小林" autocomplete="off">
+          </label>
+        </div>
+      </section>
+
+      <section class="step" data-step="1" hidden>
+        <div class="kicker" data-i18n="头像">头像</div>
+        <h1 data-i18n="给你自己选个头像">给你自己选个头像</h1>
+        <p class="lead" data-i18n="上传一张图片，或者先使用默认头像。">上传一张图片，或者先使用默认头像。</p>
+
+        <div class="panel">
+          <div class="avatar-setup">
+            <div class="avatar-preview" id="avatarPreview"><span class="avatar-mark"></span></div>
+            <div class="avatar-copy">
+              <div class="avatar-name" id="avatarName" data-i18n="默认头像">默认头像</div>
+              <div class="row">
+                <button type="button" class="btn ghost" id="avatarUploadBtn" data-i18n="上传图片">上传图片</button>
+                <button type="button" class="btn text" id="avatarDefaultBtn" data-i18n="使用默认">使用默认</button>
+              </div>
+              <div class="hint" data-i18n="支持 PNG / JPG / WebP，最大 8MB；会裁成正方形。">支持 PNG / JPG / WebP，最大 8MB；会裁成正方形。</div>
+              <input id="avatarFile" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="step" data-step="2" hidden>
+        <div class="kicker" data-i18n="配置模型">配置模型</div>
+        <h1 data-i18n="连接你的模型">连接你的模型</h1>
+        <p class="lead" data-i18n="选一家或多家厂商，填好 API Key 就能用；之后可以在设置里随时切换。">选一家或多家厂商，填好 API Key 就能用；之后可以在设置里随时切换。</p>
+
+        <div class="panel">
+          <div class="provider-grid" id="setupProviderGrid"></div>
+          <div class="provider-detail" id="setupProviderDetail" hidden>
+            <div class="provider-detail-head">
+              <div class="provider-detail-title">
+                <span class="provider-mark" id="spMark">AI</span>
+                <b id="spName">厂商</b>
+                <span class="provider-badge" id="spKind">OpenAI</span>
+              </div>
+              <button type="button" class="btn text" id="spClose" data-i18n="收起">收起</button>
+            </div>
+            <div id="spCustomFields" hidden>
+              <label class="field"><span data-i18n="显示名称">显示名称</span>
+                <input id="spDisplayName" type="text" maxlength="40" data-i18n-placeholder="例如：公司网关" placeholder="例如：公司网关" autocomplete="off">
+              </label>
+              <div class="field">
+                <span data-i18n="接口协议">接口协议</span>
+                <div class="seg" id="spKindSeg">
+                  <button type="button" class="seg-btn active" data-kind="openai" data-i18n="OpenAI 兼容">OpenAI 兼容</button>
+                  <button type="button" class="seg-btn" data-kind="anthropic" data-i18n="Anthropic 兼容">Anthropic 兼容</button>
+                </div>
+              </div>
+            </div>
+            <label class="field"><span data-i18n="接口地址">接口地址</span>
+              <input id="spBase" type="text" placeholder="https://api.example.com/v1" autocomplete="off">
+            </label>
+            <label class="field"><span>API Key</span>
+              <input id="spKey" type="password" placeholder="sk-..." autocomplete="off">
+            </label>
+            <div class="field">
+              <span data-i18n="可用模型">可用模型</span>
+              <div class="model-chips" id="spModels"></div>
+              <div class="input-row" style="margin-top:7px">
+                <input id="spModelInput" type="text" data-i18n-placeholder="输入模型名，回车添加" placeholder="输入模型名，回车添加" autocomplete="off">
+                <button type="button" class="btn ghost sm" id="spModelAdd" data-i18n="添加">添加</button>
+                <button type="button" class="btn ghost sm" id="spModelRefresh" data-i18n="刷新可用模型">刷新可用模型</button>
+              </div>
+            </div>
+            <div class="field-row">
+              <button type="button" class="btn primary" id="spSave" data-i18n="保存">保存</button>
+              <button type="button" class="btn ghost" id="spTest" data-i18n="测试连接">测试连接</button>
+              <span class="hint" id="spStatus"></span>
+            </div>
+            <div class="hint" id="spDocs"></div>
+          </div>
+          <div class="hint" id="setupHint" data-i18n="已配置的厂商会点亮；可以一次配置多家，稍后在主界面切换。">已配置的厂商会点亮；可以一次配置多家，稍后在主界面切换。</div>
+        </div>
+        <button type="button" class="btn text model-skip" id="modelSkipBtn" data-i18n="稍后配置，先继续">稍后配置，先继续</button>
+      </section>
+
+      <section class="step" data-step="3" hidden>
+        <div class="kicker" data-i18n="启动偏好">启动偏好</div>
+        <h1 data-i18n="最后一点偏好">最后一点偏好</h1>
+        <p class="lead" data-i18n="这些都可以在设置里随时修改。">这些都可以在设置里随时修改。</p>
+
+        <div class="panel">
+          <div class="panel-title" data-i18n="通知与外观">通知与外观</div>
+          <label class="field"><span data-i18n="主题">主题</span>
+            <select id="themeSelect">
+              <option value="light" data-i18n="浅色">浅色</option>
+              <option value="dark" data-i18n="深色">深色</option>
+              <option value="system" data-i18n="跟随系统">跟随系统</option>
+            </select>
+          </label>
+          <div class="field">
+            <span data-i18n="强调色">强调色</span>
+            <div class="color-picker" id="accentPicker">
+              <button type="button" class="color-choice active" data-color="blue" title="Blue"></button>
+              <button type="button" class="color-choice" data-color="green" title="Green"></button>
+              <button type="button" class="color-choice" data-color="violet" title="Violet"></button>
+              <button type="button" class="color-choice" data-color="orange" title="Orange"></button>
+            </div>
+          </div>
+          <div class="switch-row">
+            <span data-i18n="开机时自动启动 Nexus">开机时自动启动 Nexus</span>
+            <input id="autostartInput" type="checkbox">
+          </div>
+        </div>
+        <div class="hint" data-i18n="Nexus 不会在未经确认的情况下修改系统设置；所有操作都会记录在本地日志里。">Nexus 不会在未经确认的情况下修改系统设置；所有操作都会记录在本地日志里。</div>
+      </section>
+
+      <section class="step" data-step="4" hidden>
+        <div class="kicker" data-i18n="助手身份">助手身份</div>
+        <h1 data-i18n="请称呼我">请称呼我</h1>
+        <p class="lead" data-i18n="给我起个名字，并确认我该怎么称呼你。">给我起个名字，并确认我该怎么称呼你。</p>
+
+        <div class="panel">
+          <label class="field"><span data-i18n="我会这样称呼你">我会这样称呼你</span>
+            <input id="addressInput" type="text" maxlength="32" placeholder="例如：小林" autocomplete="off">
+          </label>
+          <label class="field"><span data-i18n="你可以这样叫我">你可以这样叫我</span>
+            <input id="assistantInput" type="text" maxlength="24" value="Nexus" placeholder="Nexus" autocomplete="off">
+          </label>
+          <div class="identity-preview" id="identityPreview"></div>
+          <div class="hint" data-i18n="这两个称呼会写入系统提示词，之后我会一直这样称呼你。">这两个称呼会写入系统提示词，之后我会一直这样称呼你。</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="dots">
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <button class="btn text" id="skipBtn" data-i18n="跳过引导">跳过引导</button>
+      <button class="btn ghost" id="backBtn" data-i18n="上一步" hidden>上一步</button>
+      <button class="btn primary" id="nextBtn" data-i18n="下一步">下一步</button>
+    </footer>
+  </div>
+
+  <script src="assets/i18n.js"></script>
+  <script src="assets/avatar.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var T = function (s) { return window.NexusI18n ? window.NexusI18n.t(s) : s; };
+      var TF = function (s, v) { return window.NexusI18n ? window.NexusI18n.tf(s, v) : s; };
+      var state = {
+        step: 0,
+        modelStage: 0,
+        language: 'zh',
+        profile: { name: '', avatar: 'default', color: 'blue' },
+        avatarData: '',
+        assistantName: 'Nexus',
+        theme: 'light',
+        accent: 'blue',
+        providerCatalog: [],
+        providers: {},
+        providerId: '',
+        draftModels: [],
+        draftModel: '',
+        draftKind: 'openai'
+      };
+      var GUIDE = {
+        0: '先认识一下。我该怎么称呼你？界面用哪种语言？',
+        1: '选一张头像吧。可以上传图片，也可以先用默认的。',
+        3: '再看一眼外观。主题、强调色和开机启动都可以现在定。',
+        4: '最后一步。请称呼我——你想叫我什么？'
+      };
+      var GUIDE_MODEL = [
+        '选一家厂商，或者在最后选“自定义”。',
+        '把 API Key 粘贴进来，点保存就行。',
+        '可以继续配置其他厂商，配好后点“下一步”。'
+      ];
+      var orbit = document.getElementById('guideOrb');
+      var bubble = document.getElementById('guideBubble');
+      var guideName = document.getElementById('guideName');
+      var nextBtn = document.getElementById('nextBtn');
+      var backBtn = document.getElementById('backBtn');
+
+      function api() { return window.pywebview && window.pywebview.api; }
+      function call(name) {
+        var a = api();
+        if (!a || !a[name]) return Promise.resolve(null);
+        var args = Array.prototype.slice.call(arguments, 1);
+        try { return a[name].apply(a, args); } catch (e) { return Promise.resolve(null); }
+      }
+      function esc(text) {
+        return String(text == null ? '' : text)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+      function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+      function setGuide(text) { bubble.textContent = text; }
+      function playConfirm(kind) {
+        orbit.classList.remove('confirm', 'orbit', 'error');
+        void orbit.offsetWidth;
+        orbit.classList.add(kind === 'orbit' ? 'orbit' : 'confirm');
+        return wait(kind === 'orbit' ? 1150 : 600).then(function () {
+          orbit.classList.remove('confirm', 'orbit');
+        });
+      }
+      function playError() {
+        orbit.classList.remove('confirm', 'orbit', 'error');
+        void orbit.offsetWidth;
+        orbit.classList.add('error');
+        setTimeout(function () { orbit.classList.remove('error'); }, 900);
+      }
+      function effectiveLang(value) {
+        if (value === 'system') {
+          return String(navigator.language || 'zh').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en';
+        }
+        return value === 'en' ? 'en' : 'zh';
+      }
+      function applyLanguage(value) {
+        state.language = value;
+        if (window.NexusI18n) window.NexusI18n.setLang(effectiveLang(value));
+        document.documentElement.lang = effectiveLang(value) === 'en' ? 'en' : 'zh-CN';
+        render();
+      }
+      function applyTheme(value) {
+        state.theme = value;
+        var dark = value === 'dark' || (value === 'system' &&
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      }
+      function applyAccent(value) {
+        state.accent = value;
+        document.documentElement.setAttribute('data-accent', value);
+        Array.prototype.slice.call(document.querySelectorAll('#accentPicker .color-choice')).forEach(function (btn) {
+          btn.classList.toggle('active', btn.dataset.color === value);
+        });
+      }
+      function renderAvatarPreview() {
+        var preview = document.getElementById('avatarPreview');
+        var label = document.getElementById('avatarName');
+        if (state.avatarData) {
+          preview.classList.add('has-image');
+          preview.style.backgroundImage = 'url("' + state.avatarData + '")';
+          preview.innerHTML = '';
+          label.textContent = T('自定义头像');
+        } else {
+          preview.classList.remove('has-image');
+          preview.style.backgroundImage = '';
+          preview.innerHTML = '<span class="avatar-mark"></span>';
+          label.textContent = T('默认头像');
+        }
+      }
+      function identityText() {
+        var user = document.getElementById('addressInput').value.trim() || state.profile.name || T('你');
+        var assistant = document.getElementById('assistantInput').value.trim() || 'Nexus';
+        return TF('我会称呼你为「{user}」，你可以叫我「{assistant}」。', {
+          user: user, assistant: assistant
+        });
+      }
+      function renderIdentity() {
+        var preview = document.getElementById('identityPreview');
+        if (preview) preview.textContent = identityText();
+        guideName.textContent = document.getElementById('assistantInput').value.trim() || 'Nexus';
+      }
+      function providerInfo(id) {
+        for (var i = 0; i < state.providerCatalog.length; i++) {
+          if (state.providerCatalog[i].id === id) return state.providerCatalog[i];
+        }
+        return null;
+      }
+      function providerState(id) {
+        return state.providers[id] || { configured: false, models: [], base_url: '', name: id, kind: 'openai' };
+      }
+      function applySetupMark(el, id) {
+        if (!el) return;
+        var info = providerInfo(id);
+        var path = (info && info.icon) ? ('assets/' + info.icon) : '';
+        el.innerHTML = '';
+        if (path) {
+          el.className = 'provider-mark has-icon';
+          el.style.background = 'transparent';
+          var img = document.createElement('img');
+          img.src = path;
+          img.alt = '';
+          img.decoding = 'async';
+          img.draggable = false;
+          el.appendChild(img);
+          return;
+        }
+        el.className = 'provider-mark';
+        el.textContent = (info && info.mark) || 'AI';
+        el.style.background = (info && info.color) || '#64748b';
+      }
+      function configuredCount() {
+        var count = 0;
+        state.providerCatalog.forEach(function (info) {
+          if (providerState(info.id).configured) count += 1;
+        });
+        return count;
+      }
+      function renderSetupProviders() {
+        var grid = document.getElementById('setupProviderGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        state.providerCatalog.forEach(function (info) {
+          var st = providerState(info.id);
+          var card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'provider-card' + (st.configured ? ' active' : '') +
+            (state.providerId === info.id ? ' selected' : '');
+          card.style.setProperty('--provider-color', info.color || '#64748b');
+          var head = document.createElement('div');
+          head.className = 'provider-card-head';
+          var mark = document.createElement('span');
+          mark.className = 'provider-mark';
+          applySetupMark(mark, info.id);
+          var name = document.createElement('span');
+          name.className = 'provider-card-name';
+          name.textContent = info.id === 'custom' ? (st.name || info.name) : info.name;
+          head.appendChild(mark);
+          head.appendChild(name);
+          var note = document.createElement('div');
+          note.className = 'provider-card-note';
+          note.textContent = info.id === 'custom'
+            ? ((st.base_url || '') || T('OpenAI / Anthropic 兼容接口'))
+            : (info.note || '');
+          var foot = document.createElement('div');
+          foot.className = 'provider-card-foot';
+          var badge = document.createElement('span');
+          badge.className = 'provider-state' + (st.configured ? ' on' : '');
+          badge.textContent = st.configured ? T('已配置') : T('未配置');
+          foot.appendChild(badge);
+          card.appendChild(head);
+          card.appendChild(note);
+          card.appendChild(foot);
+          card.addEventListener('click', function () { openSetupProvider(info.id); });
+          grid.appendChild(card);
+        });
+      }
+      function openSetupProvider(id) {
+        var info = providerInfo(id);
+        if (!info) return;
+        var st = providerState(id);
+        state.providerId = id;
+        state.draftModels = (st.models && st.models.length)
+          ? st.models.slice()
+          : (info.models || []).map(function (m) { return m.id; });
+        state.draftModel = state.draftModels[0] || '';
+        state.draftKind = st.kind || info.kind || 'openai';
+        var detail = document.getElementById('setupProviderDetail');
+        if (!detail) return;
+        detail.hidden = false;
+        var mark = document.getElementById('spMark');
+        applySetupMark(mark, id);
+        document.getElementById('spName').textContent = id === 'custom' ? (st.name || info.name) : info.name;
+        document.getElementById('spKind').textContent = state.draftKind === 'anthropic' ? 'Anthropic' : 'OpenAI';
+        document.getElementById('spBase').value = st.base_url || info.base_url || '';
+        document.getElementById('spKey').value = '';
+        document.getElementById('spStatus').className = 'hint';
+        document.getElementById('spStatus').textContent = '';
+        document.getElementById('spCustomFields').hidden = id !== 'custom';
+        if (id === 'custom') {
+          document.getElementById('spDisplayName').value = st.name || '';
+          Array.prototype.slice.call(document.querySelectorAll('#spKindSeg .seg-btn')).forEach(function (btn) {
+            btn.classList.toggle('active', btn.dataset.kind === state.draftKind);
+          });
+        }
+        var docs = document.getElementById('spDocs');
+        var links = [];
+        if (info.docs_url) {
+          links.push('<a class="link" href="' + esc(info.docs_url) + '" target="_blank" rel="noreferrer">' + esc(T('厂商文档')) + '</a>');
+        }
+        if (info.key_url) {
+          links.push('<a class="link" href="' + esc(info.key_url) + '" target="_blank" rel="noreferrer">' + esc(T('获取 API Key')) + '</a>');
+        }
+        docs.innerHTML = links.join(' · ');
+        renderSetupModels();
+        renderSetupProviders();
+        if (detail.scrollIntoView) detail.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        setGuide(T(GUIDE_MODEL[1]));
+      }
+      function renderSetupModels() {
+        var box = document.getElementById('spModels');
+        if (!box) return;
+        box.innerHTML = '';
+        if (!state.draftModels.length) {
+          box.innerHTML = '<span class="hint">' + esc(T('点「刷新可用模型」或手动添加')) + '</span>';
+          return;
+        }
+        state.draftModels.forEach(function (model) {
+          var chip = document.createElement('span');
+          chip.className = 'model-chip' + (state.draftModel === model ? ' on' : '');
+          var label = document.createElement('span');
+          label.textContent = model;
+          label.addEventListener('click', function () {
+            state.draftModel = model;
+            renderSetupModels();
+          });
+          chip.appendChild(label);
+          box.appendChild(chip);
+        });
+      }
+      function addSetupModel() {
+        var input = document.getElementById('spModelInput');
+        var value = input.value.trim();
+        if (!value) return;
+        if (state.draftModels.indexOf(value) < 0) state.draftModels.push(value);
+        if (!state.draftModel) state.draftModel = value;
+        input.value = '';
+        renderSetupModels();
+      }
+      async function saveSetupProvider(activate) {
+        var id = state.providerId;
+        if (!id) return false;
+        var status = document.getElementById('spStatus');
+        if (status) { status.className = 'hint'; status.textContent = T('保存中…'); }
+        var payload = {
+          id: id,
+          base_url: document.getElementById('spBase').value.trim(),
+          models: state.draftModels,
+          model: state.draftModel,
+          activate: !!activate
+        };
+        if (id === 'custom') {
+          payload.name = document.getElementById('spDisplayName').value.trim();
+          payload.kind = state.draftKind;
+        }
+        var key = document.getElementById('spKey').value.trim();
+        if (key) payload.api_key = key;
+        var res = await call('provider_save', payload);
+        if (!res || !res.ok) {
+          if (status) {
+            status.className = 'hint fail';
+            status.textContent = (res && res.error) || T('保存失败');
+          }
+          playError();
+          return false;
+        }
+        if (res.state) {
+          state.providers = res.state.providers || state.providers;
+          state.providerCatalog = res.state.provider_catalog || state.providerCatalog;
+        }
+        document.getElementById('spKey').value = '';
+        renderSetupProviders();
+        if (status) {
+          status.className = 'hint ok';
+          status.textContent = T('已加密保存');
+        }
+        setGuide(T('配置好了，可以继续选其他厂商。'));
+        return true;
+      }
+      async function testSetupProvider() {
+        var id = state.providerId;
+        if (!id) return;
+        var status = document.getElementById('spStatus');
+        if (status) { status.className = 'hint'; status.textContent = T('测试中…'); }
+        var res = await call('provider_test', {
+          id: id,
+          base_url: document.getElementById('spBase').value.trim(),
+          api_key: document.getElementById('spKey').value.trim(),
+          model: state.draftModel || state.draftModels[0] || '',
+          kind: id === 'custom' ? state.draftKind : providerState(id).kind
+        });
+        if (!status) return;
+        if (res && res.ok) {
+          status.className = 'hint ok';
+          status.textContent = TF('连接成功：{text}', { text: res.text || 'OK' });
+          setGuide(T('连接成功，记住你了。'));
+        } else {
+          status.className = 'hint fail';
+          status.textContent = ((res && res.error) || T('连接失败')) +
+            (res && res.hint ? '（' + res.hint + '）' : '');
+          playError();
+        }
+      }
+      async function refreshSetupModels() {
+        var id = state.providerId;
+        if (!id) return;
+        var status = document.getElementById('spStatus');
+        if (status) { status.className = 'hint'; status.textContent = T('读取模型列表…'); }
+        var res = await call('provider_models', {
+          id: id,
+          base_url: document.getElementById('spBase').value.trim(),
+          api_key: document.getElementById('spKey').value.trim(),
+          kind: id === 'custom' ? state.draftKind : providerState(id).kind
+        });
+        if (!res || !res.ok) {
+          if (status) { status.className = 'hint fail'; status.textContent = (res && res.error) || T('读取失败'); }
+          return;
+        }
+        var list = (res.models || []).map(function (m) { return m.id; });
+        if (!list.length) {
+          if (status) { status.className = 'hint fail'; status.textContent = T('接口没有返回模型'); }
+          return;
+        }
+        state.draftModels = list;
+        if (list.indexOf(state.draftModel) < 0) state.draftModel = list[0];
+        renderSetupModels();
+        if (status) { status.className = 'hint ok'; status.textContent = TF('读取到 {n} 个模型', { n: list.length }); }
+      }
+      function render() {
+        Array.prototype.slice.call(document.querySelectorAll('.step')).forEach(function (el) {
+          el.hidden = Number(el.dataset.step) !== state.step;
+        });
+        Array.prototype.slice.call(document.querySelectorAll('.dot')).forEach(function (dot, i) {
+          dot.classList.toggle('active', i === state.step);
+        });
+        backBtn.hidden = state.step === 0;
+        if (state.step === 4) nextBtn.textContent = T('开始使用');
+        else nextBtn.textContent = T('下一步');
+        if (state.step === 4 && !document.getElementById('addressInput').value) {
+          document.getElementById('addressInput').value = state.profile.name || '';
+        }
+        renderSetupProviders();
+        renderAvatarPreview();
+        renderIdentity();
+        setGuide(T(guideText()));
+        var content = document.getElementById('content');
+        if (content) content.scrollTop = 0;
+      }
+      function guideText() {
+        if (state.step === 2) {
+          if (state.providerId) return GUIDE_MODEL[1];
+          return configuredCount() ? GUIDE_MODEL[2] : GUIDE_MODEL[0];
+        }
+        return GUIDE[state.step] || '';
+      }
+      function goStep(step) {
+        state.step = step;
+        if (step === 2 && !state.providerId) state.providerId = '';
+        nextBtn.disabled = false;
+        render();
+      }
+      async function next() {
+        if (nextBtn.disabled) return;
+        if (state.step === 0) {
+          var name = document.getElementById('nameInput').value.trim();
+          if (!name) {
+            playError();
+            setGuide(T('先告诉我该怎么称呼你。'));
+            document.getElementById('nameInput').focus();
+            return;
+          }
+          state.profile.name = name;
+          nextBtn.disabled = true;
+          await playConfirm('pulse');
+          goStep(1);
+          return;
+        }
+        if (state.step === 1) {
+          nextBtn.disabled = true;
+          await playConfirm('orbit');
+          goStep(2);
+          return;
+        }
+        if (state.step === 2) {
+          if (state.providerId) {
+            var hasKey = document.getElementById('spKey').value.trim();
+            if (hasKey || providerState(state.providerId).configured) {
+              nextBtn.disabled = true;
+              var saved = await saveSetupProvider(false);
+              nextBtn.disabled = false;
+              if (!saved) return;
+            }
+          }
+          if (!configuredCount()) {
+            playError();
+            setGuide(T('先配置一家厂商，或者点下面的“稍后配置”。'));
+            return;
+          }
+          nextBtn.disabled = true;
+          await playConfirm('orbit');
+          goStep(3);
+          return;
+        }
+        if (state.step === 3) {
+          nextBtn.disabled = true;
+          await playConfirm('orbit');
+          goStep(4);
+          return;
+        }
+        await finish();
+      }
+      async function finish() {
+        var assistant = document.getElementById('assistantInput').value.trim() || 'Nexus';
+        var address = document.getElementById('addressInput').value.trim() || state.profile.name;
+        nextBtn.disabled = true;
+        await playConfirm('orbit');
+        var payload = {
+          language: state.language,
+          assistant_name: assistant,
+          profile: {
+            name: address,
+            avatar: state.avatarData ? 'custom' : 'default',
+            color: state.profile.color,
+            avatar_data: state.avatarData || ''
+          },
+          theme: state.theme,
+          accent: state.accent,
+          autostart: document.getElementById('autostartInput').checked
+        };
+        var res = await call('onboarding_complete', payload);
+        if (!res || !res.ok) {
+          nextBtn.disabled = false;
+          playError();
+          setGuide((res && res.error) || T('保存失败了，再试一次。'));
+        }
+      }
+      async function skipModel() {
+        nextBtn.disabled = true;
+        await playConfirm('orbit');
+        goStep(3);
+      }
+      function back() {
+        if (state.step === 0) return;
+        state.step -= 1;
+        render();
+      }
+
+      Array.prototype.slice.call(document.querySelectorAll('#spKindSeg .seg-btn')).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          state.draftKind = btn.dataset.kind === 'anthropic' ? 'anthropic' : 'openai';
+          Array.prototype.slice.call(document.querySelectorAll('#spKindSeg .seg-btn')).forEach(function (b) {
+            b.classList.toggle('active', b.dataset.kind === state.draftKind);
+          });
+          document.getElementById('spKind').textContent = state.draftKind === 'anthropic' ? 'Anthropic' : 'OpenAI';
+          var base = document.getElementById('spBase');
+          if (!base.value.trim()) {
+            base.value = state.draftKind === 'anthropic' ? 'https://api.anthropic.com' : '';
+          }
+        });
+      });
+      document.getElementById('spClose').addEventListener('click', function () {
+        document.getElementById('setupProviderDetail').hidden = true;
+        state.providerId = '';
+        renderSetupProviders();
+        setGuide(T(configuredCount() ? GUIDE_MODEL[2] : GUIDE_MODEL[0]));
+      });
+      document.getElementById('spSave').addEventListener('click', function () { saveSetupProvider(false); });
+      document.getElementById('spTest').addEventListener('click', testSetupProvider);
+      document.getElementById('spModelAdd').addEventListener('click', addSetupModel);
+      document.getElementById('spModelRefresh').addEventListener('click', refreshSetupModels);
+      document.getElementById('spModelInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addSetupModel(); }
+      });
+
+      document.getElementById('langSelect').addEventListener('change', function () {
+        applyLanguage(this.value);
+        playConfirm('pulse');
+        setGuide(T('界面语言已切换。'));
+      });
+      document.getElementById('nameInput').addEventListener('change', function () {
+        if (this.value.trim()) playConfirm('pulse');
+      });
+      document.getElementById('avatarUploadBtn').addEventListener('click', function () {
+        document.getElementById('avatarFile').click();
+      });
+      document.getElementById('avatarDefaultBtn').addEventListener('click', function () {
+        state.avatarData = '';
+        state.profile.avatar = 'default';
+        renderAvatarPreview();
+        playConfirm('pulse');
+        setGuide(T('先用默认头像，之后随时可以换。'));
+      });
+      document.getElementById('avatarFile').addEventListener('change', function () {
+        var input = this;
+        var file = input.files && input.files[0];
+        if (!file) return;
+        if (!window.NexusAvatar) {
+          playError();
+          setGuide(T('头像组件未加载'));
+          input.value = '';
+          return;
+        }
+        window.NexusAvatar.read(file, function (data) {
+          state.avatarData = data;
+          state.profile.avatar = 'custom';
+          renderAvatarPreview();
+          playConfirm('pulse');
+          setGuide(T('头像选好了。'));
+        }, function (reason) {
+          playError();
+          if (reason === 'size') setGuide(T('图片不能超过 8MB。'));
+          else if (reason === 'type') setGuide(T('请选择 PNG、JPG 或 WebP 图片。'));
+          else setGuide(T('无法读取这张图片。'));
+        });
+        input.value = '';
+      });
+      document.getElementById('themeSelect').addEventListener('change', function () { applyTheme(this.value); });
+      Array.prototype.slice.call(document.querySelectorAll('#accentPicker .color-choice')).forEach(function (btn) {
+        btn.addEventListener('click', function () { applyAccent(btn.dataset.color); });
+      });
+      document.getElementById('assistantInput').addEventListener('input', renderIdentity);
+      document.getElementById('addressInput').addEventListener('input', renderIdentity);
+      document.getElementById('modelSkipBtn').addEventListener('click', skipModel);
+      document.getElementById('backBtn').addEventListener('click', back);
+      document.getElementById('nextBtn').addEventListener('click', next);
+      document.getElementById('skipBtn').addEventListener('click', function () { call('onboarding_skip'); });
+      document.getElementById('closeBtn').addEventListener('click', function () { call('onboarding_skip'); });
+
+      async function boot() {
+        if (!api()) { window.addEventListener('pywebviewready', boot, { once: true }); return; }
+        var st = await call('get_state');
+        if (st && st.ok) {
+          state.language = (st.settings && st.settings.language) || 'zh';
+          if (st.profile) {
+            state.profile.name = st.profile.name || '';
+            state.profile.avatar = st.profile.avatar || 'default';
+            state.profile.color = st.profile.color || 'blue';
+            state.avatarData = st.profile.avatar_data || '';
+          }
+          state.assistantName = st.assistant_name || 'Nexus';
+          state.theme = st.theme || 'light';
+          state.accent = st.accent || 'blue';
+          state.providerCatalog = (st.settings && st.settings.provider_catalog) || [];
+          state.providers = (st.settings && st.settings.providers) || {};
+          document.getElementById('langSelect').value = state.language;
+          document.getElementById('nameInput').value = state.profile.name || '';
+          document.getElementById('addressInput').value = state.profile.name || '';
+          document.getElementById('assistantInput').value = state.assistantName;
+          document.getElementById('themeSelect').value = state.theme;
+          document.getElementById('autostartInput').checked = !!(st.settings && st.settings.autostart);
+          applyTheme(state.theme);
+          applyAccent(state.accent);
+          applyLanguage(state.language);
+        }
+        renderAvatarPreview();
+        render();
+      }
+      if (window.pywebview && window.pywebview.api) boot();
+      else window.addEventListener('pywebviewready', boot, { once: true });
+    })();
+  </script>
+</body>
+</html>

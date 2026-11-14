@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light" data-accent="blue">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nexus · 新功能</title>
+  <link rel="stylesheet" href="assets/setup.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="titlebar">
+      <div class="brand"><span class="brand-mark"></span>Nexus</div>
+      <span class="spacer"></span>
+      <button class="close" id="closeBtn" title="Close">×</button>
+    </header>
+
+    <main class="content">
+      <div class="kicker" data-i18n="本次更新">本次更新</div>
+      <h1 data-i18n="新的 Nexus，更清楚也更好用">新的 Nexus，更清楚也更好用</h1>
+      <div class="version-badge"><span data-i18n="版本">版本</span> <b id="versionText">-</b></div>
+      <p class="lead" data-i18n="这次更新主要整理界面、补齐中英文，并把上下文和更新流程做得更透明。">这次更新主要整理界面、补齐中英文，并把上下文和更新流程做得更透明。</p>
+
+      <div class="feature-grid">
+        <div class="feature">
+          <div class="feature-icon">⚙</div>
+          <h3 data-i18n="更清爽的设置中心">更清爽的设置中心</h3>
+          <p data-i18n="设置按账号、模型、上下文、外观、数据和更新重新分组，不再堆在一起。">设置按账号、模型、上下文、外观、数据和更新重新分组，不再堆在一起。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">中</div>
+          <h3 data-i18n="全界面中英文切换">全界面中英文切换</h3>
+          <p data-i18n="主界面、设置、历史、快捷浮窗、托盘菜单和引导页都支持双语。">主界面、设置、历史、快捷浮窗、托盘菜单和引导页都支持双语。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">◎</div>
+          <h3 data-i18n="首次使用引导">首次使用引导</h3>
+          <p data-i18n="独立的引导窗口，带你配置语言、账号和 API Key。">独立的引导窗口，带你配置语言、账号和 API Key。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">≋</div>
+          <h3 data-i18n="上下文自动压缩">上下文自动压缩</h3>
+          <p data-i18n="128K / 1M 两档，实时显示占用；达到 50% 自动把整个会话统一总结为摘要，也可随时手动压缩。">128K / 1M 两档，实时显示占用；达到 50% 自动把整个会话统一总结为摘要，也可随时手动压缩。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">!</div>
+          <h3 data-i18n="更清楚的 API 报错">更清楚的 API 报错</h3>
+          <p data-i18n="可以直接展开查看 HTTP 状态码与服务端返回内容。">可以直接展开查看 HTTP 状态码与服务端返回内容。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">↻</div>
+          <h3 data-i18n="自动检查更新">自动检查更新</h3>
+          <p data-i18n="从 GitHub Releases 检查新版本，可立即更新或暂不更新。">从 GitHub Releases 检查新版本，可立即更新或暂不更新。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">◎</div>
+          <h3 data-i18n="本地账号资料">本地账号资料</h3>
+          <p data-i18n="昵称、头像和配色只保存在本机，不联网。">昵称、头像和配色只保存在本机，不联网。</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">●</div>
+          <h3 data-i18n="只保留悬浮球">只保留悬浮球</h3>
+          <p data-i18n="桌面宠物已移除，悬浮球保持轻量、稳定、不占任务栏。">桌面宠物已移除，悬浮球保持轻量、稳定、不占任务栏。</p>
+        </div>
+      </div>
+
+      <p class="hint" style="margin-top:16px" data-i18n="所有偏好都可以在设置里随时修改。">所有偏好都可以在设置里随时修改。</p>
+    </main>
+
+    <footer class="footer">
+      <div class="dots"><span class="dot active"></span></div>
+      <button class="btn text" id="guideBtn" data-i18n="重新打开新手引导">重新打开新手引导</button>
+      <button class="btn primary" id="doneBtn" data-i18n="开始使用">开始使用</button>
+    </footer>
+  </div>
+
+  <script src="assets/i18n.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var T = function (s) { return window.NexusI18n ? window.NexusI18n.t(s) : s; };
+      function api() { return window.pywebview && window.pywebview.api; }
+      function call(name) {
+        var a = api();
+        if (!a || !a[name]) return Promise.resolve(null);
+        var args = Array.prototype.slice.call(arguments, 1);
+        try { return a[name].apply(a, args); } catch (e) { return Promise.resolve(null); }
+      }
+      function applyTheme(value) {
+        var dark = value === 'dark' || (value === 'system' &&
+          window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      }
+      async function boot() {
+        if (!api()) { window.addEventListener('pywebviewready', boot, { once: true }); return; }
+        var st = await call('get_state');
+        if (st && st.ok) {
+          if (st.language && window.NexusI18n) window.NexusI18n.setLang(st.language);
+          applyTheme(st.theme || 'light');
+          document.documentElement.setAttribute('data-accent', st.accent || 'blue');
+          document.getElementById('versionText').textContent = 'v' + (st.version || '');
+        }
+        window.NexusI18n && window.NexusI18n.apply(document);
+      }
+      document.getElementById('doneBtn').addEventListener('click', function () { call('whatsnew_done'); });
+      document.getElementById('closeBtn').addEventListener('click', function () { call('whatsnew_done'); });
+      document.getElementById('guideBtn').addEventListener('click', function () {
+        call('show_onboarding');
+      });
+      if (window.pywebview && window.pywebview.api) boot();
+      else window.addEventListener('pywebviewready', boot, { once: true });
+    })();
+  </script>
+</body>
+</html>
