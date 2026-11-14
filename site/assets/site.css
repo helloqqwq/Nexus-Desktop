@@ -210,6 +210,23 @@ html[data-theme="dark"] .m-hero-panel { background: rgba(22, 26, 32, .6); }
 .m-stat span { color: var(--text-3); }
 .m-stat b { font-weight: 500; font-family: var(--mono); font-size: 11.5px; color: var(--text); text-align: right; }
 
+/* 版本 */
+.m-ver-num { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 680; letter-spacing: -.02em; }
+.m-ver-list { position: relative; margin: 20px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.m-ver-list li { position: relative; padding-left: 18px; font-size: 13px; line-height: 1.7; color: var(--text-2); }
+.m-ver-list li::before {
+  content: ""; position: absolute; left: 0; top: 8px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .85;
+}
+.m-ver-foot {
+  position: relative; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-1);
+}
+.m-ver-link { font-size: 12.5px; color: var(--accent); text-decoration: none; }
+.m-ver-link:hover { text-decoration: underline; }
+.m-ver-sha { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+@media (max-width: 840px) { .m-ver-sha { margin-left: 0; } }
+
 /* FAQ */
 .m-faq { border-top: 1px solid var(--border-1); }
 .m-faq details { border-bottom: 1px solid var(--border-1); }

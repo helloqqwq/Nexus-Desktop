@@ -9,7 +9,30 @@
     "在线试用": "Live demo",
     "安全": "Security",
     "下载": "Download",
+    "版本": "Versions",
     "常见问题": "FAQ",
+    "最新版本": "Latest version",
+    "每个版本，都让桌面更顺手一点": "Every release makes the desktop a little smoother",
+    "安装包只从官网和 GitHub Releases 发布。下面是最新版本的内容，历史版本可在 GitHub 查看。":
+      "Installer builds ship only from this site and GitHub Releases. Here is what changed in the latest version; older releases are on GitHub.",
+    "最新": "Latest",
+    "GitHub 发布页": "GitHub release",
+    "多厂商模型接入：8 家内置厂商 + 自定义 OpenAI / Anthropic 兼容接口，每家 Key 独立加密保存":
+      "Multi-provider models: 8 built-in providers plus custom OpenAI- or Anthropic-compatible endpoints, each key encrypted separately",
+    "30+ 个工具：电脑诊断、网络修复、文件与文档、单文件网页、截图提问、本地语音、Windows UI 自动化":
+      "30+ tools: PC diagnostics, network repair, files and documents, single-file pages, screenshot Q&A, local speech, Windows UI automation",
+    "本地数据 AES-256-GCM 加密，主密钥由 Windows DPAPI 保护，不写日志":
+      "Local data encrypted with AES-256-GCM; the master key is protected by Windows DPAPI and never written to logs",
+    "自托管更新清单 update.json，下载后先校验 SHA-256 再安装":
+      "Self-hosted update manifest (update.json) with SHA-256 verification before install",
+    "PDF 阅读与页面渲染改用 PDFium，源码以 MIT 开源":
+      "PDF reading and page rendering now use PDFium; source released under MIT",
+    "从 GitHub 下载安装包": "Download from GitHub",
+    "查看源代码": "View source",
+    "当前版本": "Current version",
+    "发布日期": "Released",
+    "发布渠道": "Channels",
+    "官网 · GitHub Releases": "This site · GitHub Releases",
     "切换语言": "Switch language",
     "下载 Windows 版": "Download for Windows",
     "把电脑，": "Your PC,",
