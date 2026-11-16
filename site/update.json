@@ -1,0 +1,10 @@
+{
+  "version": "0.2.0",
+  "notes": "技能、系统提示词与长期记忆：新增技能调用、多条系统提示词、长期记忆，以及更准确的上下文计量。",
+  "installer": {
+    "name": "Nexus-Setup-0.2.0.exe",
+    "url": "https://github.com/helloqqwq/Nexus-Desktop/releases/download/v0.2.0/Nexus-Setup-0.2.0.exe",
+    "size": 56969731,
+    "sha256": "a276636da35b81a7081f28dea50220930be5b72da7b932f4e8cfaaf92d7e00d0"
+  }
+}

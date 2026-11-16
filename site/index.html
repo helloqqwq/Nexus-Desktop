@@ -51,7 +51,7 @@
         <a class="m-btn lg" href="#demo" data-i18n="在浏览器里试用">在浏览器里试用</a>
       </div>
       <div class="m-meta">
-        <span>VERSION 0.1.0</span>
+        <span>VERSION 0.2.0</span>
         <span>WINDOWS 10 / 11</span>
         <span data-i18n="30+ 个工具">30+ 个工具</span>
         <span data-i18n="9 家模型厂商">9 家模型厂商</span>
@@ -317,17 +317,17 @@
         <div class="m-download-head">
           <div>
             <div class="m-download-name">Nexus for Windows</div>
-            <div class="m-download-meta" id="dlMeta">v0.1.0 · Windows 10 / 11 x64 · 54.3 MiB</div>
+            <div class="m-download-meta" id="dlMeta">v0.2.0 · Windows 10 / 11 x64 · 54.3 MiB</div>
           </div>
           <span class="m-tag" data-i18n="稳定版">稳定版</span>
         </div>
         <div class="m-download-actions">
-          <a class="m-btn primary lg" id="dlInstaller" href="https://37jn10d54xg2snsh7sl.traesite.cn/Nexus-Setup-0.1.0.exe" download data-i18n="下载安装包">下载安装包</a>
+          <a class="m-btn primary lg" id="dlInstaller" href="https://github.com/helloqqwq/Nexus-Desktop/releases/download/v0.2.0/Nexus-Setup-0.2.0.exe" download data-i18n="下载安装包">下载安装包</a>
           <button class="m-btn lg" id="copySha" type="button" data-i18n="复制 SHA-256">复制 SHA-256</button>
         </div>
         <div class="m-sha">
           <span>SHA-256</span>
-          <code id="shaText" title="EAE312F67D27C55B86A77D7410F40B595CA1C93FB7EB0ACF4976C209587C7141">EAE312F6…587C7141</code>
+          <code id="shaText" title="A276636DA35B81A7081F28DEA50220930BE5B72DA7B932F4E8CFAAF92D7E00D0">A276636D…2D7E00D0</code>
         </div>
         <p class="m-download-note" data-i18n="双击安装，不需要预装 Python 或运行库；客户端内置自动更新，读取同一通道的 update.json 检查版本，下载后校验 SHA-256 再安装。">
           双击安装，不需要预装 Python 或运行库；客户端内置自动更新，读取同一通道的 update.json 检查版本，下载后校验 SHA-256 再安装。
@@ -359,27 +359,26 @@
       <article class="m-download-card m-ver-card">
         <div class="m-download-head">
           <div>
-            <div class="m-ver-num">v0.1.0 <span class="m-tag" data-i18n="最新">最新</span></div>
-            <div class="m-download-meta">2026-11-14 · Windows 10 / 11 x64</div>
+            <div class="m-ver-num">v0.2.0 <span class="m-tag" data-i18n="最新">最新</span></div>
+            <div class="m-download-meta">2026-11-16 · Windows 10 / 11 x64</div>
           </div>
-          <a class="m-btn" href="https://github.com/helloqqwq/Nexus-Desktop/releases/tag/v0.1.0" target="_blank" rel="noopener" data-i18n="GitHub 发布页">GitHub 发布页</a>
+          <a class="m-btn" href="https://github.com/helloqqwq/Nexus-Desktop/releases/tag/v0.2.0" target="_blank" rel="noopener" data-i18n="GitHub 发布页">GitHub 发布页</a>
         </div>
         <ul class="m-ver-list">
-          <li data-i18n="多厂商模型接入：8 家内置厂商 + 自定义 OpenAI / Anthropic 兼容接口，每家 Key 独立加密保存">多厂商模型接入：8 家内置厂商 + 自定义 OpenAI / Anthropic 兼容接口，每家 Key 独立加密保存</li>
-          <li data-i18n="30+ 个工具：电脑诊断、网络修复、文件与文档、单文件网页、截图提问、本地语音、Windows UI 自动化">30+ 个工具：电脑诊断、网络修复、文件与文档、单文件网页、截图提问、本地语音、Windows UI 自动化</li>
-          <li data-i18n="本地数据 AES-256-GCM 加密，主密钥由 Windows DPAPI 保护，不写日志">本地数据 AES-256-GCM 加密，主密钥由 Windows DPAPI 保护，不写日志</li>
-          <li data-i18n="自托管更新清单 update.json，下载后先校验 SHA-256 再安装">自托管更新清单 update.json，下载后先校验 SHA-256 再安装</li>
-          <li data-i18n="PDF 阅读与页面渲染改用 PDFium，源码以 MIT 开源">PDF 阅读与页面渲染改用 PDFium，源码以 MIT 开源</li>
+          <li data-i18n="技能（Skills）：内置会议纪要、电脑排查、单页网页与周报，可用 / 或 + 调用，也能导入自己的 SKILL.md">技能（Skills）：内置会议纪要、电脑排查、单页网页与周报，可用 / 或 + 调用，也能导入自己的 SKILL.md</li>
+          <li data-i18n="系统提示词库：多条 Markdown 规则独立启停，左侧编辑、右侧实时预览，名称留空自动命名">系统提示词库：多条 Markdown 规则独立启停，左侧编辑、右侧实时预览，名称留空自动命名</li>
+          <li data-i18n="长期记忆：记住你明确说过的偏好与习惯，下次对话自动带上，内容加密保存在本机">长期记忆：记住你明确说过的偏好与习惯，下次对话自动带上，内容加密保存在本机</li>
+          <li data-i18n="更准确的上下文计量：系统提示词、工具定义与真实 API 用量一起计入，占用环与实际请求一致">更准确的上下文计量：系统提示词、工具定义与真实 API 用量一起计入，占用环与实际请求一致</li>
         </ul>
         <div class="m-ver-foot">
-          <a class="m-ver-link" href="https://github.com/helloqqwq/Nexus-Desktop/releases/download/v0.1.0/Nexus-Setup-0.1.0.exe" target="_blank" rel="noopener" data-i18n="从 GitHub 下载安装包">从 GitHub 下载安装包</a>
+          <a class="m-ver-link" href="https://github.com/helloqqwq/Nexus-Desktop/releases/download/v0.2.0/Nexus-Setup-0.2.0.exe" target="_blank" rel="noopener" data-i18n="从 GitHub 下载安装包">从 GitHub 下载安装包</a>
           <a class="m-ver-link" href="https://github.com/helloqqwq/Nexus-Desktop" target="_blank" rel="noopener" data-i18n="查看源代码">查看源代码</a>
-          <span class="m-ver-sha">SHA-256 EAE312F6…587C7141</span>
+          <span class="m-ver-sha">SHA-256 A276636D…2D7E00D0</span>
         </div>
       </article>
       <div class="m-download-side">
-        <div class="m-stat"><span data-i18n="当前版本">当前版本</span><b>0.1.0</b></div>
-        <div class="m-stat"><span data-i18n="发布日期">发布日期</span><b>2026-11-14</b></div>
+        <div class="m-stat"><span data-i18n="当前版本">当前版本</span><b>0.2.0</b></div>
+        <div class="m-stat"><span data-i18n="发布日期">发布日期</span><b>2026-11-16</b></div>
         <div class="m-stat"><span data-i18n="安装包">安装包</span><b>54.3 MiB</b></div>
         <div class="m-stat"><span data-i18n="发布渠道">发布渠道</span><b data-i18n="官网 · GitHub Releases">官网 · GitHub Releases</b></div>
       </div>
