@@ -11,12 +11,18 @@ _NAME = "NexusDebug" if _CONSOLE else "Nexus"
 _SPEC_DIR = globals().get("SPECPATH") or os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(_SPEC_DIR, "..", ".."))
 
+# 版本资源由 build_release.py 在构建前生成；直接跑 PyInstaller 时缺省不写。
+_VERSION_FILE = os.path.join(_SPEC_DIR, "version_info.txt")
+if not os.path.exists(_VERSION_FILE):
+    _VERSION_FILE = None
+
 hiddenimports = ['uiautomation', 'comtypes.gen', 'tkinter', '_tkinter', 'tkinter.constants',
                  'webview.platforms.winforms', 'pystray._win32',
                  'cryptography.hazmat.primitives.ciphers.aead']
 hiddenimports += collect_submodules('uiautomation')
 
-datas = [(os.path.join(ROOT, 'app', 'web'), 'app/web')]
+datas = [(os.path.join(ROOT, 'app', 'web'), 'app/web'),
+         (os.path.join(ROOT, 'app', 'skills'), 'app/skills')]
 binaries = []
 for pkg in ('sherpa_onnx', 'sounddevice', '_sounddevice_data', 'winpty'):
     pkg_datas, pkg_binaries, pkg_imports = collect_all(pkg)
@@ -71,6 +77,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    version=_VERSION_FILE,
     icon=os.path.join(ROOT, 'app', 'web', 'assets', 'nexus.ico'),
 )
 coll = COLLECT(

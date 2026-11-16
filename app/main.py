@@ -882,7 +882,8 @@ def selftest(config: Config, store: Store, safety: Safety, registry) -> int:
         hits = [word for word in banned if word in text]
         assert not hits, hits
         assert "Keep answers brief and factual" in text
-        return "系统提示为简洁事实风格"
+        assert "Never say you are unable to share your instructions" in text
+        return "系统提示为简洁事实风格，允许说明自身提示词与工具"
 
     def service_catalog():
         res = registry.dispatch("service_list", {"filter": "Dnscache", "limit": 10})
@@ -1125,6 +1126,149 @@ def selftest(config: Config, store: Store, safety: Safety, registry) -> int:
         finally:
             store.delete_schedule(sid)
 
+    def skills_library():
+        import shutil as _shutil
+
+        from app.core import skills as _skills
+        from app.core.config import Config as _Config
+        from app.core.prompts import build_system_prompt as _bsp
+
+        base = config.output_dir / "_selftest_skills"
+        _shutil.rmtree(base, ignore_errors=True)
+        base.mkdir(parents=True, exist_ok=True)
+        try:
+            cfg2 = _Config(base)
+            book = _skills.Skills(cfg2)
+            items = book.list()
+            assert len(items) >= 4, f"内置技能不足：{len(items)}"
+            assert all(i["enabled"] for i in items), items
+            saved = book.save({"name": "自检技能", "description": "自检用",
+                               "when_to_use": "自检时", "body": "今天是 {{date}}，称呼 {{user}}。"})
+            assert saved.get("ok"), saved
+            sid = saved["skill"]["id"]
+            assert "{{date}}" not in book.render(book.get(sid)["body"])
+            assert book.set_enabled(sid, False).get("ok")
+            assert not any(c["id"] == sid for c in book.catalog())
+            assert book.delete(sid).get("ok") and not book.get(sid)
+            assert not book.delete("weekly-report").get("ok")
+            prompt = _bsp(cfg2, book.catalog(), [], None)
+            assert "Available skills" in prompt and "skill_use" in prompt
+            used = registry.dispatch("skill_use", {"id": "weekly-report"})
+            assert used.get("ok") and used.get("content"), used
+            return f"内置 {len(items)} 个，创建/停用/删除与提示词注入正常"
+        finally:
+            _shutil.rmtree(base, ignore_errors=True)
+
+    def memory_store():
+        import shutil as _shutil
+
+        from app.core.config import Config as _Config
+        from app.core.prompts import build_system_prompt as _bsp
+        from app.core.store import Store as _Store
+
+        base = config.output_dir / "_selftest_memory"
+        _shutil.rmtree(base, ignore_errors=True)
+        base.mkdir(parents=True, exist_ok=True)
+        store2 = None
+        try:
+            cfg2 = _Config(base)
+            store2 = _Store(cfg2.db_path, cfg2.box)
+            mid = store2.add_memory("用户偏好简洁回答", "preference")
+            mid2 = store2.add_memory("用户偏好简洁回答", "preference")
+            assert mid == mid2, "相同内容未去重"
+            assert store2.update_memory(mid, "用户喜欢先给结论")
+            items = store2.memories(10)
+            assert items and items[0]["text"] == "用户喜欢先给结论", items
+            prompt = _bsp(cfg2, [], items, None)
+            assert "用户喜欢先给结论" in prompt
+            assert "When a task is complete" in prompt
+            assert store2.delete_memory(mid)
+            assert store2.memories(10) == []
+            cfg2.set("memory.enabled", False)
+            assert "Persistent memory" not in _bsp(cfg2, [], [], None)
+            return "记忆去重/更新/删除与提示词注入正常"
+        finally:
+            if store2:
+                store2.close()
+            _shutil.rmtree(base, ignore_errors=True)
+
+    def token_meter():
+        import shutil as _shutil
+
+        from app.core.config import Config as _Config
+        from app.core.llm import LLMClient
+        from app.core.store import Store as _Store
+
+        base = config.output_dir / "_selftest_tokens"
+        _shutil.rmtree(base, ignore_errors=True)
+        base.mkdir(parents=True, exist_ok=True)
+        store2 = None
+        try:
+            cfg2 = _Config(base)
+            store2 = _Store(cfg2.db_path, cfg2.box)
+            agent2 = Agent(cfg2, store2, Safety(cfg2, store2), registry)
+            sid = store2.create_session("计量")
+            empty = agent2.context_usage(sid)
+            assert empty["used"] > 4000, empty
+            assert empty["breakdown"]["system"] > 0, empty
+            assert empty["breakdown"]["tools"] > 0, empty
+            tools = registry.schemas()
+            envelope = LLMClient(cfg2).envelope(tools)
+            store2.add_message(sid, "user", "你好")
+            store2.add_message(sid, "assistant", "好的", {
+                "usage": {"input": 8000, "output": 50, "cache_read": 2000,
+                          "cache_write": 0, "total": 10050},
+                "envelope": envelope, "surface": empty["breakdown"]["system"],
+                "estimate": empty["used"],
+            })
+            used = agent2.context_usage(sid)
+            assert used["source"] == "usage", used
+            assert used["used"] >= 8000, used
+            cfg2.set("llm.model", "selftest-other-model")
+            fallback = agent2.context_usage(sid)
+            assert fallback["source"] == "estimate", fallback
+            return "系统提示词/工具 schema 与真实 usage 锚点均计入"
+        finally:
+            if store2:
+                store2.close()
+            _shutil.rmtree(base, ignore_errors=True)
+
+    def prompt_library():
+        import shutil as _shutil
+
+        from app.core.config import Config as _Config
+        from app.core.prompt_library import PromptBook
+        from app.core.prompts import build_system_prompt as _bsp
+
+        base = config.output_dir / "_selftest_prompts"
+        _shutil.rmtree(base, ignore_errors=True)
+        base.mkdir(parents=True, exist_ok=True)
+        try:
+            cfg2 = _Config(base)
+            book = PromptBook(cfg2)
+            first = book.save({"name": "风格", "body": "# 规则\n\n- 先给结论\n- 日期 {{date}}"})
+            second = book.save({"name": "格式", "body": "表格优先"})
+            assert first.get("ok") and second.get("ok"), (first, second)
+            assert len(book.list()) == 2
+            prompt = _bsp(cfg2, [], [], None, book.enabled())
+            assert "## System prompt: 风格" in prompt and "先给结论" in prompt
+            assert "{{date}}" not in prompt
+            assert book.set_enabled(first["prompt"]["id"], False).get("ok")
+            assert len(book.enabled()) == 1
+            assert "## System prompt: 风格" not in _bsp(cfg2, [], [], None, book.enabled())
+            cfg2.set("prompt.extra", "旧版附加规则")
+            migrated = PromptBook(cfg2)
+            assert any("旧版附加规则" in item["body"] for item in migrated.list())
+            assert not cfg2.get("prompt.extra")
+            assert book.delete(second["prompt"]["id"]).get("ok")
+            from app.core.naming import suggest_name
+
+            assert suggest_name(cfg2, "# 周报整理\n每周五整理工作", "prompt") == "周报整理"
+            assert suggest_name(cfg2, "请始终用中文回答", "prompt") == "请始终用中文回答"
+            return "提示词创建/启停/删除、旧版迁移、自动命名与注入正常"
+        finally:
+            _shutil.rmtree(base, ignore_errors=True)
+
     print(f"\nNexus {__version__} 自检  |  数据目录：{config.dir}\n")
     check("配置加载", lambda: str(config.dir))
     check("DPAPI 密钥", dpapi)
@@ -1179,6 +1323,10 @@ def selftest(config: Config, store: Store, safety: Safety, registry) -> int:
     check("长任务连续执行", long_task)
     check("助手身份与头像", assistant_profile)
     check("定时任务数据层", scheduler_store)
+    check("技能库", skills_library)
+    check("系统提示词库", prompt_library)
+    check("长期记忆", memory_store)
+    check("上下文计量", token_meter)
 
     failed = [r for r in results if not r[1]]
     print(f"\n结果：{len(results) - len(failed)} 项通过，{len(failed)} 项失败")
@@ -1268,7 +1416,7 @@ def main() -> int:
 
     store = Store(config.db_path, config.box)
     safety = Safety(config, store)
-    registry = build_registry(config, safety)
+    registry = build_registry(config, safety, store)
 
     if args.selftest:
         try:

@@ -12,6 +12,13 @@
     streaming: false,
     attachments: [],
     scenes: [],
+    skills: [],
+    activeSkill: null,
+    editingSkill: null,
+    prompts: [],
+    editingPrompt: null,
+    memories: [],
+    editingMemory: null,
     settings: {},
     settingsPage: 'groupAccount',
     settingsProvider: '',
@@ -54,8 +61,10 @@
     triggerItems: [],
     dragDepth: 0,
     rightOpen: false,
+    rpWidth: 0,
     tree: null,
     treeRoot: '',
+    treeSig: '',
     expanded: [],
     treeTimer: null,
     searchTimer: null,
@@ -97,6 +106,8 @@
     voiceWaveTimer: null,
   };
   let scrollQueued = false;
+  let followBottom = true;
+  const BOTTOM_GAP = 80;
   let perfBusy = false;
   let statusHtml = '';
 
@@ -316,12 +327,18 @@
     return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
 
-  function addUser(text, attachments) {
+  function addUser(text, attachments, skill) {
     hideEmpty();
     const wrap = document.createElement('div');
     wrap.className = 'msg user';
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
+    if (skill && skill.name) {
+      const tag = document.createElement('div');
+      tag.className = 'bubble-skill';
+      tag.textContent = '✦ ' + T('技能') + ' · ' + skill.name;
+      bubble.appendChild(tag);
+    }
     if (attachments && attachments.length) {
       attachments.forEach(function (a) {
         if (a.type === 'image' && a.data_url) {
@@ -345,7 +362,7 @@
     }
     wrap.appendChild(bubble);
     threadEl().appendChild(wrap);
-    scrollBottom();
+    scrollBottom(true);
     return wrap;
   }
 
@@ -442,24 +459,32 @@
     wrap.innerHTML = '<div class="msg-avatar"></div><div class="msg-main"><div class="typing"><i></i><i></i><i></i></div></div>';
     threadEl().appendChild(wrap);
     S.typingEl = wrap;
-    scrollBottom();
+    scrollBottom(true);
   }
 
   function removeTyping() {
     if (S.typingEl) { S.typingEl.remove(); S.typingEl = null; }
   }
 
-  function scrollBottom() {
+  function nearBottom(box) {
+    return box.scrollHeight - box.scrollTop - box.clientHeight <= BOTTOM_GAP;
+  }
+
+  // force=true 用于用户主动发消息、切换会话等场景；普通流式更新只在用户停留在底部时跟随
+  function scrollBottom(force) {
     const box = $('#messages');
+    if (!box) return;
+    if (force) followBottom = true;
+    else if (!followBottom) return;
     box.scrollTop = box.scrollHeight;
   }
 
   function scrollBottomSoon() {
-    if (scrollQueued) return;
+    if (scrollQueued || !followBottom) return;
     scrollQueued = true;
     requestAnimationFrame(function () {
       scrollQueued = false;
-      scrollBottom();
+      if (followBottom) scrollBottom();
     });
   }
 
@@ -863,7 +888,8 @@
     text = (text || '').trim();
     if (!text && !S.attachments.length) return;
     const attachments = S.attachments.slice();
-    if (!opts.skipUser) addUser(text, attachments);
+    const activeSkill = S.activeSkill ? { id: S.activeSkill.id, name: S.activeSkill.name } : null;
+    if (!opts.skipUser) addUser(text, attachments, activeSkill);
     $('#input').value = '';
     autoGrow();
     closeTrigger();
@@ -887,11 +913,14 @@
     const payload = {
       session_id: S.sessionId,
       text: text || '请看看附件',
+      skill: activeSkill ? activeSkill.id : '',
       attachments: attachments.map(function (a) {
         if (a.type === 'file') return { type: 'file', name: a.name, text: a.text };
         return { type: 'image', data: a.base64 };
       }),
     };
+    // 技能只作用于这一条消息，发送后立即清空输入框旁的技能 chip。
+    if (activeSkill) setActiveSkill(null);
     const res = await call('send', payload);
     if (!res || !res.ok) {
       if (res && res.error) toast(res.error);
@@ -1239,11 +1268,24 @@
     S.trigger = ctx;
     if (ctx.trigger === '/') {
       const q = ctx.query.toLowerCase();
-      S.triggerItems = COMMANDS.filter(function (c) {
+      const skills = (S.skills || []).filter(function (s) {
+        if (!s.enabled) return false;
+        if (!q) return true;
+        return (String(s.id) + ' ' + String(s.name) + ' ' + String(s.description) + ' ' +
+          String(s.when_to_use)).toLowerCase().indexOf(q) >= 0;
+      }).map(function (s) {
+        return {
+          kind: 'skill', skill: s, label: s.name,
+          desc: s.description || s.when_to_use || '', icon: '✦',
+        };
+      });
+      const commands = COMMANDS.filter(function (c) {
         return !q || c.cmd.indexOf(q) === 0 || c.label.toLowerCase().indexOf(q) >= 0;
       }).map(function (c) {
         return { kind: 'cmd', cmd: c, label: T(c.label), desc: T(c.desc), icon: c.icon };
       });
+      S.triggerItems = skills.concat(commands);
+      S.triggerIndex = 0;
       renderTrigger();
     } else {
       openReferenceMenu(ctx);
@@ -1328,6 +1370,14 @@
       removeTriggerText(ctx);
       closeTrigger();
       item.cmd.run();
+      return;
+    }
+    if (item.kind === 'skill') {
+      removeTriggerText(ctx);
+      closeTrigger();
+      setActiveSkill(item.skill);
+      toast(TF('已选择技能：{name}', { name: item.skill.name }));
+      $('#input').focus();
       return;
     }
     if (item.kind === 'file') {
@@ -1447,7 +1497,7 @@
     wrap.appendChild(bubble);
     const thread = $('#thread') || $('#messages');
     thread.appendChild(wrap);
-    scrollToBottom();
+    scrollBottom();
   }
 
   function replyAsk(wrap, id, answer) {
@@ -1460,7 +1510,7 @@
     wrap.querySelector('.bubble').appendChild(tip);
     if (answer === null) call('ask_reply', { id: id, cancelled: true });
     else call('ask_reply', { id: id, answer: String(answer) });
-    scrollToBottom();
+    scrollBottom();
   }
 
   /* ---------------- 右侧文件面板 ---------------- */
@@ -1473,10 +1523,13 @@
     if (window.innerWidth < 900) return;
     const panel = $('#rightPanel');
     if (!panel) return;
+    // 小窗里优先保证对话区宽度：打开右栏时临时收起左栏
+    if (window.innerWidth <= 1100) setSidebar(true, true);
     panel.hidden = false;
     requestAnimationFrame(function () { panel.classList.add('open'); });
     S.rightOpen = true;
     $('#rpToggle').classList.add('active');
+    startTreePoller();
     if (!S.tree || S.rpMode === 'tree') await loadTree();
     const active = activeInner(rpTabById(S.rpActive));
     if (active && active.kind === 'browser' && active.viewId) {
@@ -1504,6 +1557,90 @@
     const toggle = $('#rpToggle');
     if (toggle) toggle.classList.remove('active');
     if (S.streaming) S.rpManualClosed = true;
+  }
+
+  /* ---------------- 右侧面板宽度调整 ---------------- */
+  const RP_W_KEY = 'nexus.rpWidth';
+  const RP_MIN_W = 320;
+  const CHAT_MIN_W = 420;
+
+  function rpWidthLimits() {
+    const vw = window.innerWidth;
+    if (vw <= 960) return { min: RP_MIN_W, max: Math.max(RP_MIN_W, vw - 240) };
+    const side = $('#sidebar');
+    const sideW = side ? Math.round(side.getBoundingClientRect().width) : 280;
+    return { min: RP_MIN_W, max: Math.max(RP_MIN_W, vw - sideW - CHAT_MIN_W) };
+  }
+
+  let rpSyncTimer = null;
+  function schedulePanelSync() {
+    clearTimeout(rpSyncTimer);
+    rpSyncTimer = setTimeout(function () {
+      const inner = activeInner(rpTabById(S.rpActive));
+      if (inner && inner.kind === 'browser' && inner.viewId && S.rightOpen) syncBrowserRect(inner);
+    }, 90);
+  }
+
+  function applyRpWidth(px, persist) {
+    const panel = $('#rightPanel');
+    if (!panel || !px) return;
+    const lim = rpWidthLimits();
+    const width = Math.round(Math.max(lim.min, Math.min(lim.max, px)));
+    panel.style.width = width + 'px';
+    if (persist) {
+      const actual = Math.round(panel.getBoundingClientRect().width) || width;
+      S.rpWidth = actual;
+      try { localStorage.setItem(RP_W_KEY, String(actual)); } catch (e) { /* ignore */ }
+    }
+    schedulePanelSync();
+  }
+
+  function resetRpWidth() {
+    const panel = $('#rightPanel');
+    if (panel) panel.style.width = '';
+    S.rpWidth = 0;
+    try { localStorage.removeItem(RP_W_KEY); } catch (e) { /* ignore */ }
+    schedulePanelSync();
+  }
+
+  function initRpResizer() {
+    const bar = $('#rpResizer');
+    const panel = $('#rightPanel');
+    if (!bar || !panel) return;
+    let dragging = false;
+    let startX = 0;
+    let startW = 0;
+    bar.addEventListener('pointerdown', function (e) {
+      if (e.button) return;
+      dragging = true;
+      startX = e.clientX;
+      startW = panel.getBoundingClientRect().width;
+      bar.classList.add('dragging');
+      document.body.classList.add('rp-resizing');
+      try { bar.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      e.preventDefault();
+    });
+    bar.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      applyRpWidth(startW + (startX - e.clientX), false);
+    });
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      bar.classList.remove('dragging');
+      document.body.classList.remove('rp-resizing');
+      try { bar.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      applyRpWidth(Math.round(panel.getBoundingClientRect().width), true);
+    }
+    bar.addEventListener('pointerup', endDrag);
+    bar.addEventListener('pointercancel', endDrag);
+    bar.addEventListener('dblclick', resetRpWidth);
+    bar.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const step = e.key === 'ArrowLeft' ? 24 : -24;
+      applyRpWidth(panel.getBoundingClientRect().width + step, true);
+      e.preventDefault();
+    });
   }
 
   /* ---------------- 右侧栏标签页 ---------------- */
@@ -2125,18 +2262,40 @@
       if (box && !silent) box.innerHTML = '<div class="rp-empty">读取文件列表失败</div>';
       return;
     }
-    S.tree = res.items || [];
+    const items = res.items || [];
+    const sig = JSON.stringify(items);
+    // 静默刷新时内容没变就不重绘，避免滚动位置和展开状态被反复重置。
+    if (silent && sig === S.treeSig && S.rpMode === 'tree') return;
+    S.treeSig = sig;
+    S.tree = items;
     S.treeRoot = res.root || '';
     S.rpMode = 'tree';
+    const top = box ? box.scrollTop : 0;
     renderTreeView();
+    if (box) box.scrollTop = top;
   }
 
-  const FILE_TOOLS = { fs_write: 1, fs_edit: 1, fs_delete: 1, shell_exec: 1 };
+  const FILE_TOOLS = {
+    fs_write: 1, fs_edit: 1, fs_delete: 1, shell_exec: 1, shell_run: 1,
+    docx_write: 1, xlsx_write: 1, pptx_write: 1, html_to_pptx: 1, office_edit: 1,
+    screenshot_capture: 1, app_focus_capture: 1,
+  };
 
   function scheduleTreeRefresh() {
     if (!S.rightOpen || S.rpMode !== 'tree') return;
     clearTimeout(S.treeTimer);
     S.treeTimer = setTimeout(function () { loadTree(true); }, 350);
+  }
+
+  let treePoller = null;
+
+  function startTreePoller() {
+    if (treePoller) return;
+    // 面板打开时定时静默刷新，外部程序或未覆盖的工具改了文件也能及时出现。
+    treePoller = setInterval(function () {
+      if (!S.rightOpen || S.rpMode !== 'tree' || document.hidden) return;
+      loadTree(true);
+    }, 2500);
   }
 
   function renderTreeView() {
@@ -3384,6 +3543,8 @@
     Array.prototype.slice.call(document.querySelectorAll('.nav-item[data-view]')).forEach(function (b) {
       b.classList.toggle('active', b.dataset.view === view);
     });
+    const skillsBtn = $('#skillsNavBtn');
+    if (skillsBtn) skillsBtn.classList.remove('active');
     renderTitle();
     $('#newChatTopBtn').style.visibility = view === 'chat' ? 'visible' : 'hidden';
     if (view === 'history') loadHistory(S.histKind);
@@ -3415,6 +3576,7 @@
     S.sessionId = null;
     S.sessionTitle = '新对话';
     S.lastUserText = '';
+    setActiveSkill(null);
     clearMessages();
     renderTodo([]);
     renderTitle();
@@ -3485,10 +3647,14 @@
     });
   }
 
-  function setSidebar(collapsed) {
+  function setSidebar(collapsed, transient) {
     const app = $('#app');
     app.classList.toggle('collapsed', !!collapsed);
-    try { localStorage.setItem('nexus.sidebar', collapsed ? 'collapsed' : 'expanded'); } catch (e) { /* ignore */ }
+    if (!transient) {
+      try { localStorage.setItem('nexus.sidebar', collapsed ? 'collapsed' : 'expanded'); } catch (e) { /* ignore */ }
+    }
+    // 展开左栏时若放不下对话区最小宽度，就收起右栏
+    if (!collapsed && window.innerWidth <= 1100 && S.rightOpen) closeRightPanel();
   }
 
   function toggleSidebar() {
@@ -3581,7 +3747,8 @@
     S.lastUserText = '';
     (res.messages || []).forEach(function (m) {
       if (m.role === 'user') {
-        addUser(m.content || '', []);
+        const skillName = m.meta && m.meta.skill_name;
+        addUser(m.content || '', [], skillName ? { name: skillName } : null);
         S.lastUserText = m.content || S.lastUserText;
       } else if (m.role === 'assistant') {
         const calls = m.meta && m.meta.tool_calls;
@@ -3616,7 +3783,7 @@
     S.compressing = false;
     setCompressStatus('', '');
     refreshContextStats(res.session.id);
-    scrollBottom();
+    scrollBottom(true);
   }
 
   function fmtSize(size) {
@@ -3765,6 +3932,8 @@
     if ($('#setUpdateRepo')) $('#setUpdateRepo').value = data.update_repo || '';
     if ($('#setUpdateBase')) $('#setUpdateBase').value = data.update_base_url || '';
     if ($('#setUpdateAuto')) $('#setUpdateAuto').checked = data.update_auto_check !== false;
+    if ($('#setSkillsAuto')) $('#setSkillsAuto').checked = data.skills_auto !== false;
+    if ($('#setMemoryEnabled')) $('#setMemoryEnabled').checked = data.memory_enabled !== false;
     if ($('#setLanguage')) $('#setLanguage').value = data.language || 'zh';
     if (data.profile) applyProfile(data.profile);
     const limit = Number(data.context_limit || 131072) >= 600000 ? 1048576 : 131072;
@@ -3776,6 +3945,395 @@
     if (S.sessionId) refreshContextStats();
     else { S.contextTokens = 0; S.contextPercent = 0; updateContextUsage(); updateStatusBar(); }
     refreshVoiceStatus();
+  }
+
+  /* ---------------- 技能 ---------------- */
+  function setActiveSkill(skill) {
+    S.activeSkill = skill ? { id: skill.id, name: skill.name } : null;
+    renderSkillBar();
+  }
+
+  function renderSkillBar() {
+    const bar = $('#skillBar');
+    if (!bar) return;
+    if (!S.activeSkill) {
+      bar.hidden = true;
+      bar.innerHTML = '';
+      return;
+    }
+    bar.hidden = false;
+    bar.innerHTML = '<span class="skill-chip"><b>' + esc(S.activeSkill.name) +
+      '</b><button type="button" id="skillChipClear" data-i18n-title="移除技能" title="移除技能" aria-label="移除技能">×</button></span>';
+    const clear = $('#skillChipClear');
+    if (clear) clear.addEventListener('click', function () { setActiveSkill(null); });
+  }
+
+  function renderPlusSkills() {
+    const box = $('#plusSkillList');
+    if (!box) return;
+    const skills = (S.skills || []).filter(function (s) { return s.enabled; });
+    const title = $('#plusSkillTitle');
+    const sep = $('#plusSkillSep');
+    if (title) title.hidden = !skills.length;
+    if (sep) sep.hidden = !skills.length;
+    if (!skills.length) {
+      box.innerHTML = '';
+      return;
+    }
+    const active = S.activeSkill ? S.activeSkill.id : '';
+    box.innerHTML = skills.map(function (s) {
+      return '<button class="menu-row" data-skill="' + esc(s.id) + '"' +
+        (s.id === active ? ' data-selected="1"' : '') +
+        ' title="' + esc(s.description || s.when_to_use || s.name) + '">' +
+        '<span class="trig-icon">✦</span><span>' + esc(s.name) + '</span>' +
+        '<b class="menu-check"></b>' +
+        '</button>';
+    }).join('');
+    Array.prototype.slice.call(box.querySelectorAll('.menu-row')).forEach(function (row) {
+      row.addEventListener('click', function () {
+        const id = row.dataset.skill;
+        let picked = null;
+        for (let i = 0; i < skills.length; i++) {
+          if (skills[i].id === id) { picked = skills[i]; break; }
+        }
+        closeMenus();
+        if (!picked) return;
+        setActiveSkill(picked);
+        toast(TF('已选择技能：{name}', { name: picked.name }));
+        $('#input').focus();
+      });
+    });
+  }
+
+  async function loadSkills() {
+    const res = await call('skills', 'list');
+    if (res && res.ok) S.skills = res.items || [];
+    if (res && res.dir) S.skillsDir = res.dir;
+    renderSkills();
+    renderPlusSkills();
+  }
+
+  function skillSourceLabel(skill) {
+    return skill.source === 'builtin' ? T('内置') : T('我的');
+  }
+
+  function renderSkills() {
+    const box = $('#skillList');
+    if (!box) return;
+    const count = $('#skillCount');
+    if (count) count.textContent = S.skills.length ? String(S.skills.length) : '';
+    if (!S.skills.length) {
+      box.innerHTML = '<div class="skill-empty">' + T('还没有技能。新建一个，或把 SKILL.md 放进技能目录。') + '</div>';
+      return;
+    }
+    box.innerHTML = S.skills.map(function (s) {
+      const desc = s.description || s.when_to_use || '';
+      const when = s.when_to_use && s.description ? s.when_to_use : '';
+      return '<div class="skill-card" data-id="' + esc(s.id) + '">' +
+        '<div class="skill-head">' +
+          '<span class="skill-name">' + esc(s.name) + '</span>' +
+          '<span class="skill-src">' + esc(skillSourceLabel(s)) + '</span>' +
+          '<div class="skill-actions">' +
+            '<label class="skill-toggle"><input type="checkbox" data-act="toggle"' +
+              (s.enabled ? ' checked' : '') + '><i></i></label>' +
+            '<button class="icon-btn" data-act="edit" title="' + T('编辑') + '" aria-label="' + T('编辑') + '">✎</button>' +
+            (s.source === 'user'
+              ? '<button class="icon-btn" data-act="delete" title="' + T('删除') + '" aria-label="' + T('删除') + '">×</button>'
+              : '') +
+          '</div>' +
+        '</div>' +
+        (desc ? '<p class="skill-desc">' + esc(desc) + '</p>' : '') +
+        (when ? '<p class="skill-when">' + T('什么时候用：') + esc(when) + '</p>' : '') +
+      '</div>';
+    }).join('');
+    Array.prototype.slice.call(box.querySelectorAll('[data-act]')).forEach(function (el) {
+      el.addEventListener('change', function () {
+        if (el.dataset.act !== 'toggle') return;
+        toggleSkill(el.closest('.skill-card').dataset.id, el.checked);
+      });
+      el.addEventListener('click', function (e) {
+        const card = el.closest('.skill-card');
+        if (!card) return;
+        const id = card.dataset.id;
+        if (el.dataset.act === 'edit') {
+          e.preventDefault();
+          openSkillEditor(S.skills.filter(function (s) { return s.id === id; })[0]);
+        } else if (el.dataset.act === 'delete') {
+          e.preventDefault();
+          deleteSkill(id);
+        }
+      });
+    });
+  }
+
+  function openSkillEditor(skill) {
+    S.editingSkill = skill || null;
+    $('#skillModalTitle').textContent = skill ? T('编辑技能') : T('新建技能');
+    $('#skillName').value = skill ? skill.name : '';
+    $('#skillDesc').value = skill ? (skill.description || '') : '';
+    $('#skillWhen').value = skill ? (skill.when_to_use || '') : '';
+    $('#skillBody').value = skill ? (skill.body || '') : '';
+    $('#skillEnabled').checked = skill ? !!skill.enabled : true;
+    $('#skillMask').hidden = false;
+    setTimeout(function () { $('#skillName').focus(); }, 30);
+  }
+
+  function closeSkillEditor() {
+    $('#skillMask').hidden = true;
+    S.editingSkill = null;
+  }
+
+  async function saveSkillEditor() {
+    const name = ($('#skillName').value || '').trim();
+    const body = ($('#skillBody').value || '').trim();
+    if (!body) { toast(T('请填写提示词正文')); return; }
+    const payload = {
+      name: name,
+      description: ($('#skillDesc').value || '').trim(),
+      when_to_use: ($('#skillWhen').value || '').trim(),
+      body: body,
+      enabled: $('#skillEnabled').checked,
+    };
+    if (S.editingSkill) payload.id = S.editingSkill.id;
+    const res = await call('skills', 'save', payload);
+    if (!res || !res.ok) { toast((res && res.error) || T('保存失败')); return; }
+    closeSkillEditor();
+    await loadSkills();
+    const saved = res.skill && res.skill.name;
+    toast(!name && saved ? TF('已按内容命名为：{name}', { name: saved }) : T('技能已保存'));
+  }
+
+  async function toggleSkill(id, enabled) {
+    const res = await call('skills', 'toggle', { id: id, enabled: enabled });
+    if (!res || !res.ok) { toast((res && res.error) || T('操作失败')); }
+    await loadSkills();
+  }
+
+  async function deleteSkill(id) {
+    const skill = S.skills.filter(function (s) { return s.id === id; })[0];
+    const name = skill ? skill.name : id;
+    if (!window.confirm(TF('删除技能「{name}」？此操作不可撤销。', { name: name }))) return;
+    const res = await call('skills', 'delete', { id: id });
+    if (!res || !res.ok) { toast((res && res.error) || T('删除失败')); return; }
+    if (S.activeSkill && S.activeSkill.id === id) setActiveSkill(null);
+    await loadSkills();
+    toast(T('技能已删除'));
+  }
+
+  /* ---------------- 系统提示词 ---------------- */
+  async function loadPrompts() {
+    const res = await call('prompts', 'list');
+    if (res && res.ok) S.prompts = res.items || [];
+    if (res && res.dir) S.promptsDir = res.dir;
+    renderPrompts();
+  }
+
+  function renderPrompts() {
+    const box = $('#promptList');
+    if (!box) return;
+    const count = $('#promptCount');
+    if (count) count.textContent = S.prompts.length ? String(S.prompts.length) : '';
+    if (!S.prompts.length) {
+      box.innerHTML = '<div class="prompt-empty">' + T('还没有系统提示词。新建一条，写清你希望模型长期遵守的规则。') + '</div>';
+      return;
+    }
+    box.innerHTML = S.prompts.map(function (item) {
+      const body = String(item.body || '');
+      const excerpt = body.split(/\r?\n/).filter(function (line) {
+        return line.trim() && !/^#+\s*/.test(line.trim());
+      }).join(' ').replace(/[*`>_~\[\]]/g, '').trim().slice(0, 160);
+      const stamp = String(item.updated || '').slice(0, 10);
+      return '<div class="prompt-card" data-id="' + esc(item.id) + '">' +
+        '<div class="prompt-head">' +
+          '<span class="prompt-name">' + esc(item.name) + '</span>' +
+          (stamp ? '<span class="prompt-time">' + esc(stamp) + '</span>' : '') +
+          '<div class="skill-actions">' +
+            '<label class="skill-toggle"><input type="checkbox" data-act="toggle"' +
+              (item.enabled ? ' checked' : '') + '><i></i></label>' +
+            '<button class="icon-btn" data-act="edit" title="' + T('编辑') + '" aria-label="' + T('编辑') + '">✎</button>' +
+            '<button class="icon-btn" data-act="delete" title="' + T('删除') + '" aria-label="' + T('删除') + '">×</button>' +
+          '</div>' +
+        '</div>' +
+        (excerpt ? '<p class="prompt-excerpt">' + esc(excerpt) + '</p>' : '') +
+      '</div>';
+    }).join('');
+    Array.prototype.slice.call(box.querySelectorAll('[data-act]')).forEach(function (el) {
+      el.addEventListener('change', function () {
+        if (el.dataset.act !== 'toggle') return;
+        togglePrompt(el.closest('.prompt-card').dataset.id, el.checked);
+      });
+      el.addEventListener('click', function (e) {
+        const card = el.closest('.prompt-card');
+        if (!card) return;
+        const id = card.dataset.id;
+        if (el.dataset.act === 'edit') {
+          e.preventDefault();
+          openPromptEditor(S.prompts.filter(function (i) { return i.id === id; })[0]);
+        } else if (el.dataset.act === 'delete') {
+          e.preventDefault();
+          deletePrompt(id);
+        }
+      });
+    });
+  }
+
+  function updatePromptPreview() {
+    const preview = $('#promptPreview');
+    if (!preview) return;
+    const body = $('#promptBody').value || '';
+    preview.innerHTML = body.trim()
+      ? renderMarkdown(body)
+      : '<p style="color:var(--text-3)">' + T('左侧输入 Markdown，这里实时预览。') + '</p>';
+  }
+
+  function openPromptEditor(item) {
+    S.editingPrompt = item || null;
+    $('#promptModalTitle').textContent = item ? T('编辑系统提示词') : T('新建系统提示词');
+    $('#promptName').value = item ? item.name : '';
+    $('#promptEnabled').checked = item ? !!item.enabled : true;
+    $('#promptBody').value = item ? (item.body || '') : '';
+    updatePromptPreview();
+    $('#promptMask').hidden = false;
+    setTimeout(function () { $('#promptName').focus(); }, 30);
+  }
+
+  function closePromptEditor() {
+    $('#promptMask').hidden = true;
+    S.editingPrompt = null;
+  }
+
+  async function savePromptEditor() {
+    const name = ($('#promptName').value || '').trim();
+    const body = ($('#promptBody').value || '').trim();
+    if (!body) { toast(T('提示词正文不能为空')); return; }
+    const payload = {
+      name: name,
+      body: body,
+      enabled: $('#promptEnabled').checked,
+    };
+    if (S.editingPrompt) payload.id = S.editingPrompt.id;
+    const res = await call('prompts', 'save', payload);
+    if (!res || !res.ok) { toast((res && res.error) || T('保存失败')); return; }
+    closePromptEditor();
+    await loadPrompts();
+    const saved = res.prompt && res.prompt.name;
+    toast(!name && saved ? TF('已按内容命名为：{name}', { name: saved }) : T('系统提示词已保存'));
+  }
+
+  async function togglePrompt(id, enabled) {
+    const res = await call('prompts', 'toggle', { id: id, enabled: enabled });
+    if (!res || !res.ok) toast((res && res.error) || T('操作失败'));
+    await loadPrompts();
+  }
+
+  async function deletePrompt(id) {
+    const item = S.prompts.filter(function (i) { return i.id === id; })[0];
+    const name = item ? item.name : id;
+    if (!window.confirm(TF('删除系统提示词「{name}」？此操作不可撤销。', { name: name }))) return;
+    const res = await call('prompts', 'delete', { id: id });
+    if (!res || !res.ok) { toast((res && res.error) || T('删除失败')); return; }
+    await loadPrompts();
+    toast(T('系统提示词已删除'));
+  }
+
+  /* ---------------- 记忆 ---------------- */
+  function memoryCategoryLabel(cat) {
+    if (cat === 'habit') return T('习惯');
+    if (cat === 'fact') return T('事实');
+    return T('偏好');
+  }
+
+  async function loadMemory() {
+    const res = await call('memory', 'list');
+    if (res && res.ok) S.memories = res.items || [];
+    renderMemory();
+  }
+
+  function renderMemory() {
+    const box = $('#memoryList');
+    if (!box) return;
+    if (!S.memories.length) {
+      box.innerHTML = '<div class="memory-empty">' + T('还没有记忆。模型会在你表达偏好时自动记下，也可以在这里手动添加。') + '</div>';
+      return;
+    }
+    box.innerHTML = S.memories.map(function (m) {
+      return '<div class="memory-item" data-id="' + esc(m.id) + '">' +
+        '<span class="memory-cat">' + esc(memoryCategoryLabel(m.category)) + '</span>' +
+        '<span class="memory-text">' + esc(m.text) + '</span>' +
+        '<span class="memory-actions">' +
+          '<button class="icon-btn" data-act="edit" title="' + T('编辑') + '" aria-label="' + T('编辑') + '">✎</button>' +
+          '<button class="icon-btn" data-act="delete" title="' + T('删除') + '" aria-label="' + T('删除') + '">×</button>' +
+        '</span>' +
+      '</div>';
+    }).join('');
+    Array.prototype.slice.call(box.querySelectorAll('[data-act]')).forEach(function (el) {
+      el.addEventListener('click', function () {
+        const row = el.closest('.memory-item');
+        if (!row) return;
+        const item = S.memories.filter(function (m) { return String(m.id) === row.dataset.id; })[0];
+        if (!item) return;
+        if (el.dataset.act === 'edit') openMemoryEditor(item);
+        else deleteMemoryItem(item.id);
+      });
+    });
+  }
+
+  function openMemoryEditor(item) {
+    S.editingMemory = item || null;
+    $('#memoryEditText').value = item ? item.text : '';
+    $('#memoryEditCategory').value = item ? (item.category || 'preference') : 'preference';
+    $('#memoryEditDelete').hidden = !item;
+    $('#memoryMask').hidden = false;
+    setTimeout(function () { $('#memoryEditText').focus(); }, 30);
+  }
+
+  function closeMemoryEditor() {
+    $('#memoryMask').hidden = true;
+    S.editingMemory = null;
+  }
+
+  async function saveMemoryEditor() {
+    const text = ($('#memoryEditText').value || '').trim();
+    if (!text) { toast(T('记忆内容不能为空')); return; }
+    const category = $('#memoryEditCategory').value;
+    const res = S.editingMemory
+      ? await call('memory', 'update', { id: S.editingMemory.id, text: text, category: category })
+      : await call('memory', 'add', { text: text, category: category });
+    if (!res || !res.ok) { toast((res && res.error) || T('保存失败')); return; }
+    S.memories = res.items || S.memories;
+    closeMemoryEditor();
+    renderMemory();
+    toast(T('记忆已保存'));
+  }
+
+  async function addMemory() {
+    const input = $('#memoryInput');
+    const text = (input.value || '').trim();
+    if (!text) { toast(T('先写一句要记住的内容')); return; }
+    const res = await call('memory', 'add', { text: text, category: $('#memoryCategory').value });
+    if (!res || !res.ok) { toast((res && res.error) || T('添加失败')); return; }
+    input.value = '';
+    S.memories = res.items || [];
+    renderMemory();
+    toast(T('已添加'));
+  }
+
+  async function deleteMemoryItem(id) {
+    if (!window.confirm(T('删除这条记忆？'))) return;
+    const res = await call('memory', 'delete', { id: id });
+    if (!res || !res.ok) { toast((res && res.error) || T('删除失败')); return; }
+    S.memories = res.items || [];
+    renderMemory();
+  }
+
+  async function clearMemory() {
+    if (!S.memories.length) { toast(T('还没有记忆')); return; }
+    if (!window.confirm(T('清空全部长期记忆？此操作不可撤销。'))) return;
+    const res = await call('memory', 'clear');
+    if (!res || !res.ok) { toast((res && res.error) || T('清空失败')); return; }
+    S.memories = [];
+    renderMemory();
+    toast(T('记忆已清空'));
   }
 
   /* ---------------- 设置分页与厂商 ---------------- */
@@ -3802,6 +4360,10 @@
     if (box) box.scrollTop = 0;
     if (target === 'groupPerf') refreshPerfStats(true);
     if (target === 'groupModel') renderProviderGrid();
+    if (target === 'groupSkills') { loadSkills(); loadPrompts(); }
+    if (target === 'groupMemory') loadMemory();
+    const skillsBtn = $('#skillsNavBtn');
+    if (skillsBtn && target !== 'groupSkills') skillsBtn.classList.remove('active');
   }
 
   function renderProviderGrid() {
@@ -4255,6 +4817,8 @@
       update_repo: $('#setUpdateRepo').value.trim(),
       update_base_url: $('#setUpdateBase') ? $('#setUpdateBase').value.trim() : '',
       update_auto_check: $('#setUpdateAuto').checked,
+      skills_auto: $('#setSkillsAuto') ? $('#setSkillsAuto').checked : true,
+      memory_enabled: $('#setMemoryEnabled') ? $('#setMemoryEnabled').checked : true,
     };
     const res = await call('settings_save', payload);
     if (!res) return;
@@ -4586,6 +5150,12 @@
   }
 
   function bind() {
+    const msgs = $('#messages');
+    if (msgs) {
+      msgs.addEventListener('scroll', function () {
+        followBottom = nearBottom(msgs);
+      }, { passive: true });
+    }
     const ta = $('#input');
     ta.addEventListener('input', function () {
       autoGrow();
@@ -4655,6 +5225,8 @@
 
     $('#plusBtn').addEventListener('click', function (e) {
       e.stopPropagation();
+      closeTrigger();
+      renderPlusSkills();
       togglePop('#plusMenu');
     });
     Array.prototype.slice.call(document.querySelectorAll('#plusMenu .menu-row')).forEach(function (row) {
@@ -4699,6 +5271,7 @@
     $('#helpBtn').addEventListener('click', openHelp);
     $('#rpToggle').addEventListener('click', toggleRightPanel);
     $('#rpClose').addEventListener('click', closeRightPanel);
+    initRpResizer();
     initRpTabs();
     $('#rpTabAdd').addEventListener('click', function (e) {
       e.stopPropagation();
@@ -4870,6 +5443,7 @@
       }
     });
     $('#onboardingBtn').addEventListener('click', function () { call('show_onboarding'); });
+    $('#whatsnewBtn').addEventListener('click', function () { call('show_whatsnew'); });
     $('#updateLater').addEventListener('click', function () {
       const latest = (S.updateInfo && S.updateInfo.latest) || '';
       call('update_skip', latest).then(function () { closeUpdate(); });
@@ -4911,6 +5485,59 @@
       btn.addEventListener('click', function () {
         showSettingsPage(btn.dataset.target);
       });
+    });
+
+    if ($('#skillsNavBtn')) $('#skillsNavBtn').addEventListener('click', function () {
+      S.settingsPage = 'groupSkills';
+      switchView('settings');
+      showSettingsPage('groupSkills');
+      Array.prototype.slice.call(document.querySelectorAll('.nav-item[data-view]')).forEach(function (b) {
+        b.classList.remove('active');
+      });
+      $('#skillsNavBtn').classList.add('active');
+    });
+    if ($('#skillNewBtn')) $('#skillNewBtn').addEventListener('click', function () { openSkillEditor(null); });
+    if ($('#skillRefreshBtn')) $('#skillRefreshBtn').addEventListener('click', loadSkills);
+    if ($('#skillDirBtn')) $('#skillDirBtn').addEventListener('click', async function () {
+      const res = await call('skills', 'open_dir');
+      if (res && res.error) toast(res.error);
+    });
+    if ($('#skillMaskClose')) $('#skillMaskClose').addEventListener('click', closeSkillEditor);
+    if ($('#skillCancel')) $('#skillCancel').addEventListener('click', closeSkillEditor);
+    if ($('#skillSave')) $('#skillSave').addEventListener('click', saveSkillEditor);
+    if ($('#skillMask')) $('#skillMask').addEventListener('click', function (e) {
+      if (e.target === $('#skillMask')) closeSkillEditor();
+    });
+
+    if ($('#promptNewBtn')) $('#promptNewBtn').addEventListener('click', function () { openPromptEditor(null); });
+    if ($('#promptDirBtn')) $('#promptDirBtn').addEventListener('click', async function () {
+      const res = await call('prompts', 'open_dir');
+      if (res && res.error) toast(res.error);
+    });
+    if ($('#promptMaskClose')) $('#promptMaskClose').addEventListener('click', closePromptEditor);
+    if ($('#promptCancel')) $('#promptCancel').addEventListener('click', closePromptEditor);
+    if ($('#promptSave')) $('#promptSave').addEventListener('click', savePromptEditor);
+    if ($('#promptMask')) $('#promptMask').addEventListener('click', function (e) {
+      if (e.target === $('#promptMask')) closePromptEditor();
+    });
+    if ($('#promptBody')) $('#promptBody').addEventListener('input', updatePromptPreview);
+
+    if ($('#memoryAddBtn')) $('#memoryAddBtn').addEventListener('click', addMemory);
+    if ($('#memoryInput')) $('#memoryInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addMemory(); }
+    });
+    if ($('#memoryClearBtn')) $('#memoryClearBtn').addEventListener('click', clearMemory);
+    if ($('#memoryMaskClose')) $('#memoryMaskClose').addEventListener('click', closeMemoryEditor);
+    if ($('#memoryEditCancel')) $('#memoryEditCancel').addEventListener('click', closeMemoryEditor);
+    if ($('#memoryEditSave')) $('#memoryEditSave').addEventListener('click', saveMemoryEditor);
+    if ($('#memoryEditDelete')) $('#memoryEditDelete').addEventListener('click', async function () {
+      if (!S.editingMemory) return;
+      const id = S.editingMemory.id;
+      closeMemoryEditor();
+      await deleteMemoryItem(id);
+    });
+    if ($('#memoryMask')) $('#memoryMask').addEventListener('click', function (e) {
+      if (e.target === $('#memoryMask')) closeMemoryEditor();
     });
 
     if ($('#pdClose')) $('#pdClose').addEventListener('click', function () {
@@ -5130,12 +5757,14 @@
     });
     try {
       if (localStorage.getItem('nexus.sidebar') === 'collapsed') setSidebar(true);
+      S.rpWidth = parseInt(localStorage.getItem(RP_W_KEY), 10) || 0;
     } catch (e) { /* ignore */ }
     if (window.innerWidth < 900) setSidebar(true);
     let rpResizeTimer = null;
     window.addEventListener('resize', function () {
       if (window.innerWidth < 760) setSidebar(true);
       if (window.innerWidth < 900 && S.rightOpen) closeRightPanel();
+      if (S.rpWidth) applyRpWidth(S.rpWidth, false);
       clearTimeout(rpResizeTimer);
       rpResizeTimer = setTimeout(function () {
         const inner = activeInner(rpTabById(S.rpActive));
@@ -5144,7 +5773,11 @@
         }
       }, 160);
     });
+    window.addEventListener('focus', function () {
+      if (S.rightOpen && S.rpMode === 'tree') loadTree(true);
+    });
     bind();
+    if (S.rpWidth) applyRpWidth(S.rpWidth, false);
     // 上一次页面会话可能留下原生浏览器子窗口（例如 WebView 崩溃后自动重载）
     call('browser_embed_close_all');
     const st = await call('get_state');
@@ -5155,6 +5788,8 @@
       applyState(st);
       setTheme(st.theme);
       loadSettings(st.settings);
+      loadSkills();
+      loadPrompts();
     }
     window.addEventListener('nexus:lang', function () {
       renderTitle();
@@ -5165,6 +5800,9 @@
       updateContextUsage();
       updateStatusBar();
       if (S.view === 'settings') loadSettings(S.settings);
+      renderSkills();
+      renderPrompts();
+      renderMemory();
     });
     renderTitle();
     updateStatusBar();

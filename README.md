@@ -50,6 +50,7 @@ A local-first AI assistant for Windows. It chats, diagnoses your PC, writes docu
 | 电脑操作 | 枚举窗口、读取界面、查找控件、点击与输入（每次确认） |
 | 联网搜索 | DeepSeek Search / Fetch，读取网页正文 |
 | 定时任务 | 延时或定时执行一次性提示词任务，可在设置里查看与取消 |
+| 技能与提示词 | 用 `/` 调用可复用技能（SKILL.md / JSON）；可创建多条 Markdown 系统提示词，左侧编辑、右侧实时预览；模型会记住你的偏好，记忆可查看、编辑、删除 |
 | 运行时权限 | 安全（只读）/ 监管（执行命令、运行程序需确认，写文件免确认）/ 全部下放（自主执行任何命令，责任自负） |
 | 自动更新 | 优先读取自建更新服务的 `update.json`，也可配置 GitHub `owner/repo` 检查 Releases；可立即更新或暂不更新，下载后先校验 SHA-256 |
 
@@ -128,7 +129,7 @@ python build\build_release.py
 ```text
 app\main.py            启动器与 --selftest
 app\ui.py              pywebview 桥、窗口与 IPC
-app\core\              内核：agent、config、store、safety、tools、office、updater
+app\core\              内核：agent、config、store、safety、tools、office、skills、updater
 app\web\               前端界面（HTML/CSS/JS）与图标、字体、xterm.js
 build\                 构建脚本、PyInstaller spec、NSIS 安装脚本
 site\                  官网（静态站，可在浏览器里直接试用）
@@ -185,6 +186,7 @@ The app uses a split layout: `Nexus.exe` is only the entry point, dependencies l
 | PC automation | Enumerate windows, read UI trees, find controls, click and type (confirmation required) |
 | Web search | DeepSeek Search / Fetch with page text extraction |
 | Scheduled tasks | One-shot delayed or timed prompt runs, visible and cancellable in Settings |
+| Skills & prompts | Call reusable skills with `/` (SKILL.md or JSON); create multiple Markdown system prompts with a live preview; the model remembers stable preferences, and memories can be viewed, edited, and deleted |
 | Runtime permissions | Safe (read-only) / Supervised (commands and program launches need approval; file writes do not) / Full access (autonomous; you bear the risk) |
 | Auto update | Reads `update.json` from a self-hosted update service first, or checks GitHub Releases for a configured `owner/repo`; update now or postpone, with SHA-256 verification before install |
 
@@ -261,7 +263,7 @@ Artifacts are written to `release\`: `Nexus-Setup-<version>.exe`, `Nexus-Portabl
 ```text
 app\main.py            entry point and --selftest
 app\ui.py              pywebview bridge, windows, IPC
-app\core\              kernel: agent, config, store, safety, tools, office, updater
+app\core\              kernel: agent, config, store, safety, tools, office, skills, updater
 app\web\               UI (HTML/CSS/JS), icons, fonts, xterm.js
 build\                 build scripts, PyInstaller spec, NSIS installer script
 site\                  official website (static, with an in-browser demo)

@@ -13,8 +13,12 @@ from .compress import (
     COMPRESS_RATIO,
     SUMMARY_MAX_TOKENS,
     chunks,
+    estimate_message,
+    estimate_messages,
     estimate_rows,
+    estimate_system,
     estimate_tokens,
+    estimate_tools,
     split_for_summary,
     summary_prompt,
 )
@@ -22,6 +26,8 @@ from .config import Config
 from .i18n import t
 from .llm import Cancelled, LLMClient, LLMError
 from .prompts import build_system_prompt
+from .prompt_library import PromptBook
+from .skills import Skills
 from .safety import Safety
 from .store import Store
 from .tools import Registry, exclude_for
@@ -93,12 +99,12 @@ class Agent:
     # ---------------- 对外入口 ----------------
     def run(self, session_id: int, text: str, on_event=None, confirm=None,
             cancel=None, attachments: list | None = None,
-            ask=None, notify=None, on_control=None) -> None:
+            ask=None, notify=None, on_control=None, skill_id: str | None = None) -> None:
         self.registry.cancel_event = cancel
         self._changes = {}
         try:
             return self._run_impl(session_id, text, on_event, confirm, cancel,
-                                  attachments, ask, notify, on_control)
+                                  attachments, ask, notify, on_control, skill_id)
         finally:
             self._flush_changes(_Emitter(on_event))
             if on_control:
@@ -146,12 +152,27 @@ class Agent:
 
     def _run_impl(self, session_id: int, text: str, on_event=None, confirm=None,
                   cancel=None, attachments: list | None = None,
-                  ask=None, notify=None, on_control=None) -> None:
+                  ask=None, notify=None, on_control=None,
+                  skill_id: str | None = None) -> None:
         emit = _Emitter(on_event)
         mode = str(self.config.get("mode") or "supervised").lower()
         text = (text or "").strip()
         attachments = attachments or []
-        self.store.add_message(session_id, "user", text, {"attachments": len(attachments)})
+        skills = Skills(self.config)
+        catalog = skills.catalog()
+        active = skills.get(skill_id) if skill_id else None
+        active_skill = None
+        if active and active.get("enabled"):
+            active_skill = {
+                "id": active["id"],
+                "name": active["name"],
+                "body": skills.render(active["body"]),
+            }
+        meta: dict = {"attachments": len(attachments)}
+        if active_skill:
+            meta["skill"] = active_skill["id"]
+            meta["skill_name"] = active_skill["name"]
+        self.store.add_message(session_id, "user", text, meta)
         session = self.store.get_session(session_id)
         if session and session.get("title") == "新对话" and text:
             self.store.touch_session(session_id, title=text[:18])
@@ -161,13 +182,20 @@ class Agent:
             self._offline(session_id, text, emit, cancel)
             return
 
-        messages = [{"role": "system", "content": build_system_prompt(self.config)}]
-        messages.extend(self._history(session_id, emit))
+        memories = self.store.memories(limit=40) if self.config.get("memory.enabled", True) else []
+        custom_prompts = PromptBook(self.config).enabled()
+        system_prompt = build_system_prompt(
+            self.config, catalog, memories, active_skill, custom_prompts)
+        messages = [{"role": "system", "content": system_prompt}]
+        tools = self.registry.schemas(exclude=exclude_for(mode))
+        llm = LLMClient(self.config)
+        system_tokens = estimate_system(system_prompt)
+        tools_tokens = estimate_tools(tools)
+        envelope = llm.envelope(tools)
+        messages.extend(self._history(session_id, emit, system_tokens + tools_tokens))
         if attachments:
             messages[-1] = {"role": "user", "content": self._user_content(text, attachments)}
 
-        tools = self.registry.schemas(exclude=exclude_for(mode))
-        llm = LLMClient(self.config)
         vision_stripped = not attachments
 
         # 不设固定轮次上限，也不做重复调用拦截：由模型自己决定何时结束。
@@ -178,7 +206,9 @@ class Agent:
                 emit({"type": "state", "status": "idle"})
                 return
             round_idx += 1
-            self._fit_messages(messages)
+            self._fit_messages(messages, tools_tokens)
+            surface_tokens = estimate_messages(messages)
+            self._emit_usage(emit, session_id, surface_tokens, system_tokens, tools_tokens, envelope)
             msg_id = "m" + uuid.uuid4().hex[:10]
             emit({"type": "state", "status": "thinking"})
             try:
@@ -250,14 +280,21 @@ class Agent:
             if text_out:
                 emit({"type": "assistant_done", "id": msg_id, "text": text_out})
 
+            usage = result.get("usage")
+            usage_meta = self._usage_meta(usage, envelope, surface_tokens, tools_tokens)
+
             if not calls:
                 if text_out:
-                    self.store.add_message(session_id, "assistant", text_out)
+                    self.store.add_message(session_id, "assistant", text_out, usage_meta)
+                elif usage_meta:
+                    # 没有文字但有用量时也要落库，否则锚点会丢。
+                    self.store.add_message(session_id, "assistant", "", usage_meta)
                 emit({"type": "state", "status": "idle"})
                 return
 
-            self.store.add_message(session_id, "assistant", text_out,
-                                   {"tool_calls": [c["function"]["name"] for c in calls]})
+            message_meta = dict(usage_meta or {})
+            message_meta["tool_calls"] = [c["function"]["name"] for c in calls]
+            self.store.add_message(session_id, "assistant", text_out, message_meta)
             assistant_msg = {"role": "assistant", "content": text_out, "tool_calls": calls}
             if result.get("reasoning"):
                 # 思考模式下发生工具调用时，reasoning_content 必须原样回传
@@ -269,10 +306,10 @@ class Agent:
                                            on_control)
                 messages.append(tool_msg)
 
-    def _fit_messages(self, messages: list[dict]) -> None:
+    def _fit_messages(self, messages: list[dict], base_tokens: int = 0) -> None:
         """轮内上下文兜底：超预算时逐步压缩较早的工具输出，让长任务能继续跑。"""
         budget = int(self._context_limit() * 0.85)
-        total = self._messages_tokens(messages)
+        total = estimate_messages(messages) + base_tokens
         if total <= budget:
             return
         for limit_chars in (TOOL_TRIM_CHARS, TOOL_MIN_CHARS):
@@ -290,25 +327,59 @@ class Agent:
                 total += estimate_tokens(trimmed) - estimate_tokens(content)
 
     @staticmethod
-    def _messages_tokens(messages: list[dict]) -> int:
-        total = 0
-        for msg in messages:
-            content = msg.get("content")
-            if isinstance(content, str):
-                total += estimate_tokens(content)
-            elif content:
-                total += estimate_tokens(json.dumps(content, ensure_ascii=False))
-            calls = msg.get("tool_calls")
-            if calls:
-                total += estimate_tokens(json.dumps(calls, ensure_ascii=False))
-        return total
+    def _usage_meta(usage, envelope: str, surface: int, tools_tokens: int) -> dict | None:
+        """把真实用量与当次请求信封一起记录，供下次计量复用。"""
+        if not isinstance(usage, dict):
+            return None
+        return {
+            "usage": usage,
+            "envelope": envelope,
+            "surface": int(surface),
+            "estimate": int(tools_tokens) + int(surface),
+        }
+
+    def _pressure(self, session_id: int, surface: int, system_tokens: int,
+                  tools_tokens: int, envelope: str) -> tuple[int, str]:
+        """上下文压力：优先复用同一信封下的真实 prompt 用量，否则用本地估算。"""
+        used = tools_tokens + surface
+        source = "estimate"
+        anchor = self.store.last_usage(session_id)
+        if anchor and anchor.get("envelope") == envelope and isinstance(anchor.get("usage"), dict):
+            u = anchor["usage"]
+            prompt = (int(u.get("input") or 0) + int(u.get("cache_read") or 0)
+                      + int(u.get("cache_write") or 0))
+            if prompt > 0:
+                anchor_surface = int(anchor.get("surface") or 0)
+                anchor_estimate = tools_tokens + anchor_surface
+                # 和参考实现一致：供应商少报时退回估算，避免环图偏低。
+                used = max(prompt, anchor_estimate) + (surface - anchor_surface)
+                if prompt >= anchor_estimate:
+                    source = "usage"
+        return max(0, used), source
+
+    def _emit_usage(self, emit, session_id: int, surface: int, system_tokens: int,
+                    tools_tokens: int, envelope: str) -> None:
+        used, source = self._pressure(session_id, surface, system_tokens,
+                                      tools_tokens, envelope)
+        limit = self._context_limit()
+        emit({
+            "type": "context", "action": "usage", "session_id": session_id,
+            "used": used, "limit": limit, "percent": self._percent(used, limit),
+            "threshold": max(512, int(limit * COMPRESS_RATIO)),
+            "source": source,
+            "breakdown": {
+                "system": system_tokens,
+                "tools": tools_tokens,
+                "messages": max(0, surface - system_tokens),
+            },
+        })
 
     # ---------------- 历史 ----------------
-    def _history(self, session_id: int, emit=None) -> list[dict]:
+    def _history(self, session_id: int, emit=None, base_tokens: int = 0) -> list[dict]:
         rows, summary = self._session_context(session_id)
         limit = self._context_limit()
         threshold = max(512, int(limit * COMPRESS_RATIO))
-        total = estimate_rows(rows) + estimate_tokens(summary)
+        total = estimate_rows(rows) + estimate_tokens(summary) + base_tokens
         note = ""
 
         # 达到档位 50% 时，把除“当前提问”外的全部历史统一压缩成一份摘要。
@@ -321,7 +392,7 @@ class Agent:
                 compressed, keep, changed = self._compact(session_id, rows, summary)
                 if changed:
                     summary, rows = compressed, keep
-                    after = estimate_rows(rows) + estimate_tokens(summary)
+                    after = estimate_rows(rows) + estimate_tokens(summary) + base_tokens
                     if emit:
                         emit({"type": "context", "action": "compressed",
                               "session_id": session_id,
@@ -338,29 +409,19 @@ class Agent:
                           "message": str(e), "manual": False})
 
         # 压缩后仍超预算，或用户关闭了自动压缩：只裁掉最早的消息，并明确告知。
-        if estimate_rows(rows) + estimate_tokens(summary) > limit and len(rows) > 1:
-            before = estimate_rows(rows) + estimate_tokens(summary)
-            rows = self._trim_rows(rows, max(512, int(limit * 0.9)), summary)
+        if estimate_rows(rows) + estimate_tokens(summary) + base_tokens > limit and len(rows) > 1:
+            before = estimate_rows(rows) + estimate_tokens(summary) + base_tokens
+            rows = self._trim_rows(rows, max(512, int(limit * 0.9) - base_tokens), summary)
             note = t("早期对话因上下文上限已省略。", "Earlier messages were omitted due to the context limit.")
             if emit:
                 emit({"type": "context", "action": "trimmed", "session_id": session_id,
-                      "before": before, "after": estimate_rows(rows) + estimate_tokens(summary),
+                      "before": before,
+                      "after": estimate_rows(rows) + estimate_tokens(summary) + base_tokens,
                       "limit": limit, "threshold": threshold})
-
-        used = estimate_rows(rows) + estimate_tokens(summary)
-        if emit:
-            emit({"type": "context", "action": "usage", "session_id": session_id,
-                  "used": used, "limit": limit, "percent": self._percent(used, limit),
-                  "threshold": threshold, "summarized": bool(summary),
-                  "messages": len(rows)})
 
         out: list[dict] = []
         if summary:
-            header = t(
-                "以下是本次会话较早内容的摘要，请在后续回答中继续遵守其中的目标、约束和结论：\n",
-                "Below is a summary of earlier parts of this conversation. Keep following its goals, constraints, and conclusions:\n",
-            )
-            out.append({"role": "system", "content": header + summary})
+            out.append({"role": "system", "content": self._summary_header() + summary})
         if note:
             out.append({"role": "system", "content": note})
         for row in rows:
@@ -392,10 +453,39 @@ class Agent:
         summary, upto = self.store.get_session_summary(session_id)
         return self._session_rows(session_id, upto), summary
 
+    @staticmethod
+    def _summary_header() -> str:
+        return t(
+            "以下是本次会话较早内容的摘要，请在后续回答中继续遵守其中的目标、约束和结论：\n",
+            "Below is a summary of earlier parts of this conversation. Keep following its goals, constraints, and conclusions:\n",
+        )
+
+    def _fixed_cost(self) -> tuple[int, int, str]:
+        """固定开销：系统提示词、工具 schema 与请求信封指纹。"""
+        mode = str(self.config.get("mode") or "supervised").lower()
+        tools = self.registry.schemas(exclude=exclude_for(mode))
+        skills = Skills(self.config)
+        memories = self.store.memories(limit=40) if self.config.get("memory.enabled", True) else []
+        prompts = PromptBook(self.config).enabled()
+        system_prompt = build_system_prompt(
+            self.config, skills.catalog(), memories, None, prompts)
+        llm = LLMClient(self.config)
+        return estimate_system(system_prompt), estimate_tools(tools), llm.envelope(tools)
+
     def context_usage(self, session_id: int) -> dict:
         """返回当前会话的上下文占用，供界面实时展示。"""
         rows, summary = self._session_context(session_id)
-        used = estimate_rows(rows) + estimate_tokens(summary)
+        system_tokens, tools_tokens, envelope = self._fixed_cost()
+        surface = system_tokens
+        if summary:
+            surface += estimate_system(self._summary_header() + summary)
+        for row in rows:
+            surface += estimate_message({
+                "role": row.get("role"),
+                "content": str(row.get("content") or "")[:4000],
+            })
+        used, source = self._pressure(session_id, surface, system_tokens,
+                                      tools_tokens, envelope)
         limit = self._context_limit()
         threshold = max(512, int(limit * COMPRESS_RATIO))
         return {
@@ -406,18 +496,27 @@ class Agent:
             "summary_tokens": estimate_tokens(summary),
             "messages": len(rows),
             "summarized": bool(summary),
+            "source": source,
+            "breakdown": {
+                "system": system_tokens,
+                "tools": tools_tokens,
+                "messages": max(0, surface - system_tokens),
+            },
         }
 
     def compress_session(self, session_id: int, emit=None) -> dict:
         """手动压缩：不受 50% 阈值限制，把整个会话统一总结成一份摘要。"""
         rows, summary = self._session_context(session_id)
+        system_tokens, tools_tokens, _ = self._fixed_cost()
+        base = system_tokens + tools_tokens
         if not rows:
+            used = estimate_tokens(summary) + base
             return {"ok": True, "skipped": True, "reason": "empty",
-                    "used": estimate_tokens(summary),
+                    "used": used,
                     "limit": self._context_limit(),
-                    "percent": self._percent(estimate_tokens(summary), self._context_limit())}
+                    "percent": self._percent(used, self._context_limit())}
 
-        before = estimate_rows(rows) + estimate_tokens(summary)
+        before = estimate_rows(rows) + estimate_tokens(summary) + base
         limit = self._context_limit()
         threshold = max(512, int(limit * COMPRESS_RATIO))
         if emit:
@@ -431,7 +530,7 @@ class Agent:
                     "used": before, "limit": limit,
                     "percent": self._percent(before, limit)}
 
-        after = estimate_rows(keep) + estimate_tokens(compressed)
+        after = estimate_rows(keep) + estimate_tokens(compressed) + base
         result = {
             "ok": True,
             "skipped": False,

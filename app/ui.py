@@ -508,16 +508,25 @@ class NexusApp:
             # 全新用户：先走独立引导，引导结束再打开主界面。
             threading.Timer(0.35, self.show_onboarding).start()
         else:
+            show_notes = False
             if not onboarded:
                 # 老用户已经配置过 Key，不再打扰引导，也不展示新功能页。
                 self.config.set("ui.onboarded", True)
                 self.config.set("ui.last_seen_version", version)
                 self.config.save()
             elif last_seen != version:
-                # 首次运行或版本记录缺失时静默补齐，0.1 阶段不展示新功能页。
-                self.config.set("ui.last_seen_version", version)
-                self.config.save()
-            self.show_orb()
+                if last_seen:
+                    # 已安装过旧版本：展示本次更新的功能页，关闭后再进主界面。
+                    log.info("检测到版本更新：%s -> %s", last_seen, version)
+                    show_notes = True
+                else:
+                    # 版本记录缺失时静默补齐，避免首次运行就弹窗。
+                    self.config.set("ui.last_seen_version", version)
+                    self.config.save()
+            if show_notes:
+                threading.Timer(0.6, self.show_whatsnew).start()
+            else:
+                self.show_orb()
         if self.config.get("update.auto_check", True) and self.updater.enabled():
             threading.Timer(7.0, self._auto_check_update).start()
         log.info("启动完成：onboarded=%s last_seen=%s", onboarded, last_seen)
@@ -1759,6 +1768,7 @@ class NexusApp:
                                                 "Still replying. Stop the current answer first.")}
             text = (payload.get("text") or "").strip()
             attachments = payload.get("attachments") or []
+            skill_id = str(payload.get("skill") or "").strip() or None
             if not text and not attachments:
                 return {"ok": False, "error": t("内容为空", "Content is empty")}
             session_id = payload.get("session_id")
@@ -1780,7 +1790,7 @@ class NexusApp:
                 self.agent.run(session_id, text, on_event=self.on_agent_event,
                                confirm=self._confirm, cancel=cancel, attachments=attachments,
                                ask=self._ask, notify=self._notify,
-                               on_control=self.on_control_active)
+                               on_control=self.on_control_active, skill_id=skill_id)
             except Exception as e:
                 log.exception("对话执行失败")
                 self.push({"type": "error",
@@ -1989,6 +1999,9 @@ class NexusApi:
                 "voice_ready": self._app.speech.ready(),
                 "autostart": bool(cfg.get("ui.autostart")),
                 "mode": cfg.get("mode") or "supervised",
+                "extra_prompt": cfg.get("prompt.extra") or "",
+                "skills_auto": bool(cfg.get("skills.auto", True)),
+                "memory_enabled": bool(cfg.get("memory.enabled", True)),
                 "notify_done": bool(cfg.get("ui.notify_done", True)),
                 "show_api_errors": bool(cfg.get("ui.show_api_errors", True)),
                 "context_limit": int(cfg.get("ui.context_limit") or 131072),
@@ -2248,6 +2261,12 @@ class NexusApi:
             cfg.set("ui.assistant_name", value or "Nexus")
         if "notify_done" in patch:
             cfg.set("ui.notify_done", bool(patch.get("notify_done")))
+        if "extra_prompt" in patch:
+            cfg.set("prompt.extra", str(patch.get("extra_prompt") or "").strip()[:4000])
+        if "skills_auto" in patch:
+            cfg.set("skills.auto", bool(patch.get("skills_auto")))
+        if "memory_enabled" in patch:
+            cfg.set("memory.enabled", bool(patch.get("memory_enabled")))
         if "show_api_errors" in patch:
             cfg.set("ui.show_api_errors", bool(patch.get("show_api_errors")))
         if "context_compress" in patch:
@@ -3288,6 +3307,100 @@ class NexusApi:
         enabled = bool((payload or {}).get("enabled"))
         ok = self._app.store.set_schedule_enabled(sid, enabled)
         return {"ok": ok, "error": "" if ok else "任务不存在"}
+
+    # ---------- 技能与记忆 ----------
+    def skills(self, action: str = "list", payload: dict | None = None) -> dict:
+        from .core.skills import Skills
+
+        payload = payload or {}
+        book = Skills(self._app.config)
+        try:
+            if action == "list":
+                return {"ok": True, "items": book.list(), "dir": str(book.user_dir)}
+            if action == "get":
+                item = book.get(str(payload.get("id") or ""))
+                return {"ok": bool(item), "skill": item}
+            if action == "save":
+                payload = dict(payload)
+                if not str(payload.get("name") or "").strip():
+                    from .core.naming import suggest_name
+
+                    payload["name"] = suggest_name(
+                        self._app.config, str(payload.get("body") or ""), "skill", 40)
+                return book.save(payload)
+            if action == "delete":
+                return book.delete(str(payload.get("id") or ""))
+            if action == "toggle":
+                return book.set_enabled(str(payload.get("id") or ""), bool(payload.get("enabled")))
+            if action == "open_dir":
+                book.user_dir.mkdir(parents=True, exist_ok=True)
+                os.startfile(str(book.user_dir))
+                return {"ok": True, "dir": str(book.user_dir)}
+        except OSError as exc:
+            return {"ok": False, "error": f"操作失败：{exc}"}
+        return {"ok": False, "error": "未知操作"}
+
+    def prompts(self, action: str = "list", payload: dict | None = None) -> dict:
+        from .core.prompt_library import PromptBook
+
+        payload = payload or {}
+        book = PromptBook(self._app.config)
+        try:
+            if action == "list":
+                return {"ok": True, "items": book.list(), "dir": str(book.dir)}
+            if action == "get":
+                item = book.get(str(payload.get("id") or ""))
+                return {"ok": bool(item), "prompt": item}
+            if action == "save":
+                payload = dict(payload)
+                if not str(payload.get("name") or "").strip():
+                    from .core.naming import suggest_name
+
+                    payload["name"] = suggest_name(
+                        self._app.config, str(payload.get("body") or ""), "prompt", 60)
+                return book.save(payload)
+            if action == "delete":
+                return book.delete(str(payload.get("id") or ""))
+            if action == "toggle":
+                return book.set_enabled(str(payload.get("id") or ""), bool(payload.get("enabled")))
+            if action == "open_dir":
+                book.dir.mkdir(parents=True, exist_ok=True)
+                os.startfile(str(book.dir))
+                return {"ok": True, "dir": str(book.dir)}
+        except OSError as exc:
+            return {"ok": False, "error": f"操作失败：{exc}"}
+        return {"ok": False, "error": "未知操作"}
+
+    def memory(self, action: str = "list", payload: dict | None = None) -> dict:
+        payload = payload or {}
+        store = self._app.store
+        try:
+            if action == "list":
+                return {"ok": True, "items": store.memories(200)}
+            if action == "add":
+                mid = store.add_memory(
+                    str(payload.get("text") or ""),
+                    str(payload.get("category") or "preference"),
+                    getattr(self._app, "_run_session_id", None),
+                )
+                return {"ok": True, "id": mid, "items": store.memories(200)}
+            if action == "update":
+                ok = store.update_memory(int(payload.get("id") or 0),
+                                         str(payload.get("text") or ""),
+                                         payload.get("category"))
+                if not ok:
+                    return {"ok": False, "error": "记忆不存在"}
+                return {"ok": True, "items": store.memories(200)}
+            if action == "delete":
+                ok = store.delete_memory(int(payload.get("id") or 0))
+                if not ok:
+                    return {"ok": False, "error": "记忆不存在"}
+                return {"ok": True, "items": store.memories(200)}
+            if action == "clear":
+                return {"ok": True, "removed": store.clear_memories(), "items": []}
+        except (TypeError, ValueError) as exc:
+            return {"ok": False, "error": str(exc)}
+        return {"ok": False, "error": "未知操作"}
 
     # ---------- 截图 ----------
     def _pick_region(self) -> dict | None:

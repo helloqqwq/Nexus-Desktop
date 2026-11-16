@@ -71,6 +71,15 @@ DEFAULTS: dict = {
     "privacy": {
         "upload_screenshot": True,
     },
+    "prompt": {
+        "extra": "",               # 用户附加到系统提示词末尾的指令
+    },
+    "skills": {
+        "auto": True,              # 是否允许模型按描述自动调用技能
+    },
+    "memory": {
+        "enabled": True,           # 是否允许模型写入长期记忆
+    },
     "update": {
         # 自建更新服务：读取该地址下的 update.json；优先级高于 GitHub Releases
         "base_url": "https://37jn10d54xg2snsh7sl.traesite.cn",

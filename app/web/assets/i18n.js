@@ -26,6 +26,8 @@
     '切换外观': 'Toggle appearance',
     '当前状态': 'Current status',
     '文件面板': 'File panel',
+    '拖动调整面板宽度（双击恢复默认）': 'Drag to resize the panel (double-click to reset)',
+    '调整面板宽度': 'Resize panel',
     '快捷键（Ctrl+/）': 'Shortcuts (Ctrl+/)',
     '快捷键': 'Shortcuts',
     '最小化': 'Minimize',
@@ -481,6 +483,23 @@
 
     /* 新功能页 */
     '本次更新': 'What’s new',
+    '查看本次更新': 'View what’s new',
+    'Nexus 0.2.0：技能、提示词与记忆': 'Nexus 0.2.0: skills, prompts, and memory',
+    '这次更新带来技能、系统提示词和长期记忆，并让上下文计量更准确。':
+      'This release adds skills, system prompts, and long-term memory, and makes context metering more accurate.',
+    '技能（Skills）': 'Skills',
+    '内置会议纪要、电脑排查、单页网页与周报四个技能；用 / 或输入框的 + 调用，也可以把自己的 SKILL.md 放进技能目录。':
+      'Four built-in skills: meeting notes, PC triage, single-page site, and weekly report. Invoke them with / or the + menu, or add your own SKILL.md to the skills folder.',
+    '系统提示词库': 'Prompt library',
+    '多条 Markdown 规则可单独启停，左侧编辑、右侧实时预览；名称留空会按内容自动命名。':
+      'Create multiple Markdown prompts, enable them individually, and preview while editing. Leave the name empty to name it from the content.',
+    '长期记忆': 'Long-term memory',
+    '你明确说过的偏好会自动记住，下次对话直接生效；设置里可以查看、编辑、删除，内容加密保存在本机。':
+      'Preferences you state are remembered and applied in later conversations. View, edit, or delete them in Settings; they are stored encrypted on this PC.',
+    '更准确的上下文计量': 'More accurate context metering',
+    '系统提示词、工具定义和真实 API 用量一起计入，环图百分比与实际请求一致，达到 50% 自动压缩。':
+      'The system prompt, tool schemas, and real API usage are counted together. The ring matches the actual request and auto-compresses at 50%.',
+    '在 GitHub 查看完整更新日志': 'View the full changelog on GitHub',
     '更清爽的设置中心': 'A cleaner Settings center',
     '设置按账号、模型、上下文、外观、数据和更新重新分组，不再堆在一起。':
       'Settings are now grouped by account, model, context, appearance, data, and updates.',
@@ -668,7 +687,97 @@
     '再看一眼外观。主题、强调色和开机启动都可以现在定。':
       'One more look at appearance. Set the theme, accent color, and launch-at-login now.',
     '最后一步。请称呼我——你想叫我什么？':
-      'Last step. What would you like to call me?'
+      'Last step. What would you like to call me?',
+    /* 技能与记忆 */
+    '技能': 'Skills',
+    '技能与提示词': 'Skills & prompts',
+    '记忆': 'Memory',
+    '内置': 'Built-in',
+    '我的': 'Mine',
+    '编辑技能': 'Edit skill',
+    '新建技能': 'New skill',
+    '我的技能': 'My skills',
+    '打开技能目录': 'Open skills folder',
+    '自动匹配': 'Auto matching',
+    '允许模型根据描述自动调用技能': 'Let the model call skills by their description',
+    '关闭后，只有用 / 明确选中技能才会使用。': 'When off, skills are used only when you pick one with / .',
+    '附加系统提示词': 'Extra system prompt',
+    '例如：回答先给结论；不要用比喻；代码注释用中文': 'e.g. lead with the conclusion; avoid metaphors; Chinese code comments',
+    '会追加到每次对话的系统提示词末尾，留空表示不附加。': 'Appended to the system prompt of every chat. Leave empty to disable.',
+    '技能是一段可复用的工作方法：用 / 调用，也可以让模型按描述自动匹配':
+      'A skill is a reusable working method: call it with / or let the model match it by description.',
+    '支持从目录导入：把含 SKILL.md 的文件夹或 .json 文件放进技能目录，刷新即可。':
+      'To import, drop a folder with SKILL.md or a .json file into the skills folder and refresh.',
+    '技能正文会直接进入系统提示词，只导入你信任的技能。':
+      'Skill text goes straight into the system prompt, so import only skills you trust.',
+    '还没有技能。新建一个，或把 SKILL.md 放进技能目录。':
+      'No skills yet. Create one, or put a SKILL.md into the skills folder.',
+    '什么时候用：': 'Use when: ',
+    '已选择技能：{name}': 'Skill selected: {name}',
+    '移除技能': 'Remove skill',
+    '技能已保存': 'Skill saved',
+    '留空则按内容自动命名': 'Leave empty to name it from the content',
+    '已按内容命名为：{name}': 'Named from the content: {name}',
+    '技能已删除': 'Skill deleted',
+    '请填写提示词正文': 'Enter the prompt body',
+    '删除技能「{name}」？此操作不可撤销。': 'Delete skill “{name}”? This cannot be undone.',
+    '名称': 'Name',
+    '描述': 'Description',
+    '什么时候用': 'When to use',
+    '提示词正文': 'Prompt',
+    '例如：周报助手': 'e.g. Weekly report',
+    '一句话说明这个技能做什么': 'One line about what this skill does',
+    '用户提到…时': 'When the user mentions…',
+    '写下步骤、约束和输出格式': 'Write the steps, constraints, and output format',
+    '支持变量：{{date}}、{{time}}、{{user}}、{{assistant}}、{{model}}、{{output_dir}}':
+      'Variables: {{date}}, {{time}}, {{user}}, {{assistant}}, {{model}}, {{output_dir}}',
+    '系统提示词': 'System prompts',
+    '新建系统提示词': 'New system prompt',
+    '编辑系统提示词': 'Edit system prompt',
+    '打开提示词目录': 'Open prompts folder',
+    '预览': 'Preview',
+    '支持标题、列表、表格与代码块': 'Headings, lists, tables and code blocks',
+    '写下你希望模型长期遵守的规则…': 'Write the rules the model should follow from now on…',
+    '左侧输入 Markdown，这里实时预览。': 'Type Markdown on the left to preview it here.',
+    '例如：回答风格': 'e.g. Answer style',
+    '还没有系统提示词。新建一条，写清你希望模型长期遵守的规则。':
+      'No system prompts yet. Create one with the rules the model should follow.',
+    '每次对话会把启用的提示词按名称顺序追加到系统提示词；文件保存在 prompts 目录，可直接编辑 .md。':
+      'Enabled prompts are appended to the system prompt in name order. Files live in the prompts folder and can be edited as .md.',
+    '请填写提示词正文': 'Enter the prompt body',
+    '系统提示词已保存': 'System prompt saved',
+    '系统提示词已删除': 'System prompt deleted',
+    '删除系统提示词「{name}」？此操作不可撤销。': 'Delete system prompt “{name}”? This cannot be undone.',
+    '关闭弹窗': 'Close',
+    '长期记忆': 'Long-term memory',
+    '允许模型记住你的偏好与习惯': 'Let the model remember your preferences and habits',
+    '模型会把你明确说过的偏好记在这里，下次对话自动带上':
+      'Preferences you clearly state are stored here and included in later chats.',
+    '例如：回答先给结论，再给细节': 'e.g. Give the conclusion first, then details',
+    '偏好': 'Preference',
+    '习惯': 'Habit',
+    '事实': 'Fact',
+    '加密保存在本机；每次对话最多注入最近 20 条。':
+      'Encrypted on this PC; the 20 most recent entries are used in each chat.',
+    '清空记忆': 'Clear memory',
+    '编辑记忆': 'Edit memory',
+    '内容': 'Content',
+    '类型': 'Type',
+    '还没有记忆。模型会在你表达偏好时自动记下，也可以在这里手动添加。':
+      'No memories yet. The model saves preferences as you state them; you can also add one here.',
+    '还没有记忆': 'No memories yet',
+    '记忆内容不能为空': 'Memory text cannot be empty',
+    '先写一句要记住的内容': 'Write something to remember first',
+    '删除这条记忆？': 'Delete this memory?',
+    '清空全部长期记忆？此操作不可撤销。': 'Clear all long-term memories? This cannot be undone.',
+    '记忆已保存': 'Memory saved',
+    '记忆已清空': 'Memory cleared',
+    '已添加': 'Added',
+    '添加失败': 'Could not add',
+    '清空失败': 'Could not clear',
+    '保存失败': 'Save failed',
+    '删除失败': 'Delete failed',
+    '操作失败': 'Action failed'
   };
 
   let lang = 'zh';

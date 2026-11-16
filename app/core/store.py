@@ -79,6 +79,15 @@ CREATE TABLE IF NOT EXISTS meta (
     key TEXT PRIMARY KEY,
     value TEXT
 );
+CREATE TABLE IF NOT EXISTS memories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    text TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'preference',
+    source_session INTEGER,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_memories_updated ON memories(updated_at DESC, id DESC);
 """
 
 # 需要加密的字段：表名 -> 列
@@ -89,6 +98,7 @@ _SENSITIVE_COLUMNS = {
     "files": ("path", "name"),
     "audit": ("detail",),
     "schedules": ("title", "prompt", "last_result"),
+    "memories": ("text",),
 }
 _CRYPTO_VERSION = "1"
 
@@ -121,6 +131,8 @@ class Store:
             self._conn.execute("ALTER TABLE schedules ADD COLUMN once INTEGER NOT NULL DEFAULT 0")
         if "session_id" not in schedule_cols:
             self._conn.execute("ALTER TABLE schedules ADD COLUMN session_id INTEGER")
+        # 旧版本的回滚日志表已废弃，启动时清理。
+        self._conn.execute("DROP TABLE IF EXISTS file_journal")
         self._conn.commit()
 
     def _migrate_plaintext(self) -> None:
@@ -275,6 +287,26 @@ class Store:
                 (session_id, int(after_id or 0), int(limit)),
             ).fetchall()
         return self._decrypt_messages(rows)
+
+    def last_usage(self, session_id: int, scan: int = 30) -> dict | None:
+        """最近一次带真实用量的助手消息，用作上下文计量的锚点。"""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM messages WHERE session_id=? AND role='assistant' "
+                "ORDER BY id DESC LIMIT ?",
+                (int(session_id), int(scan)),
+            ).fetchall()
+        for row in self._decrypt_messages(rows):
+            meta = row.get("meta") or {}
+            usage = meta.get("usage")
+            if isinstance(usage, dict) and usage.get("input") is not None:
+                return {
+                    "usage": usage,
+                    "envelope": str(meta.get("envelope") or ""),
+                    "surface": int(meta.get("surface") or 0),
+                    "estimate": int(meta.get("estimate") or 0),
+                }
+        return None
 
     def _decrypt_messages(self, rows) -> list[dict]:
         out = []
@@ -446,3 +478,75 @@ class Store:
             cur = self._conn.execute("DELETE FROM schedules WHERE id=?", (int(schedule_id),))
             self._conn.commit()
             return cur.rowcount > 0
+
+    # ---------- memories ----------
+    def add_memory(self, text: str, category: str = "preference",
+                   session_id: int | None = None) -> int:
+        value = " ".join(str(text or "").split())[:500]
+        if not value:
+            raise ValueError("记忆内容为空")
+        category = str(category or "preference").strip().lower()[:20] or "preference"
+        now = _now()
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id, text FROM memories ORDER BY updated_at DESC, id DESC LIMIT 200"
+            ).fetchall()
+            for row in rows:
+                if self._box.decrypt_text(row["text"]) == value:
+                    self._conn.execute(
+                        "UPDATE memories SET category=?, updated_at=? WHERE id=?",
+                        (category, now, int(row["id"])),
+                    )
+                    self._conn.commit()
+                    return int(row["id"])
+            cur = self._conn.execute(
+                "INSERT INTO memories(text, category, source_session, created_at, updated_at) "
+                "VALUES(?,?,?,?,?)",
+                (self._box.encrypt_text(value), category, session_id, now, now),
+            )
+            self._conn.commit()
+            return int(cur.lastrowid)
+
+    def memories(self, limit: int = 40) -> list[dict]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM memories ORDER BY updated_at DESC, id DESC LIMIT ?",
+                (int(limit),),
+            ).fetchall()
+        out = []
+        for row in rows:
+            item = dict(row)
+            item["text"] = self._box.decrypt_text(item.get("text"))
+            out.append(item)
+        return out
+
+    def update_memory(self, memory_id: int, text: str, category: str | None = None) -> bool:
+        value = " ".join(str(text or "").split())[:500]
+        if not value:
+            return False
+        with self._lock:
+            if category:
+                cur = self._conn.execute(
+                    "UPDATE memories SET text=?, category=?, updated_at=? WHERE id=?",
+                    (self._box.encrypt_text(value), str(category)[:20], _now(), int(memory_id)),
+                )
+            else:
+                cur = self._conn.execute(
+                    "UPDATE memories SET text=?, updated_at=? WHERE id=?",
+                    (self._box.encrypt_text(value), _now(), int(memory_id)),
+                )
+            self._conn.commit()
+            return cur.rowcount > 0
+
+    def delete_memory(self, memory_id: int) -> bool:
+        with self._lock:
+            cur = self._conn.execute("DELETE FROM memories WHERE id=?", (int(memory_id),))
+            self._conn.commit()
+            return cur.rowcount > 0
+
+    def clear_memories(self) -> int:
+        with self._lock:
+            count = int(self._conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0])
+            self._conn.execute("DELETE FROM memories")
+            self._conn.commit()
+            return count

@@ -8,6 +8,7 @@ __pycache__/
 /build/work/
 /build/installer/files/
 /build/bundle_imports.py
+/build/spec/version_info.txt
 
 # 本地运行数据与密钥（绝不提交）
 data/
@@ -19,6 +20,9 @@ backup-*/
 
 # 第三方参考资料
 /参考/
+
+# 版本归档（源码包与历史安装包，不随仓库上传）
+/archive/
 
 # 截图、临时文件与生成的网页版 README
 /.screenshots/

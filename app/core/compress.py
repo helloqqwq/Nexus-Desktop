@@ -5,6 +5,8 @@
 """
 from __future__ import annotations
 
+import json
+
 from .i18n import get_language
 
 # 单次摘要请求的输入预算（字符）。中文约 1 字 ≈ 0.6 token，这里留足余量。
@@ -12,6 +14,12 @@ CHUNK_CHARS = 22000
 SUMMARY_MAX_TOKENS = 1400
 # 达到上下文档位的 50% 时自动触发全量摘要压缩。
 COMPRESS_RATIO = 0.5
+
+# 结构开销：与 deepseek-harness 的 token-meter 保持一致。
+BLOCK_OVERHEAD = 4   # 每个内容块的结构与类型标签
+ROLE_OVERHEAD = 4    # 每条消息的角色与信封开销
+# 图片按固定值估算；base64 长度没有参考价值，精确价格由厂商决定。
+IMAGE_TOKENS = 1200
 
 PROMPT_ZH = """你是 Nexus 的上下文压缩器，不负责回答用户。
 输入包含两部分：【已有摘要】和【新增对话】。请把它们合并成一份新的摘要，供后续对话直接使用。
@@ -60,6 +68,58 @@ def estimate_tokens(text: str) -> int:
 
 def estimate_rows(rows: list[dict]) -> int:
     return sum(estimate_tokens(row.get("content") or "") + 6 for row in rows)
+
+
+def estimate_block(block) -> int:
+    """给一个内容块定价：文本按密度，图片按固定值，其余按 JSON 结构。"""
+    if not isinstance(block, dict):
+        return BLOCK_OVERHEAD + estimate_tokens(str(block))
+    kind = str(block.get("type") or "")
+    if kind == "image_url":
+        return IMAGE_TOKENS
+    if kind == "text":
+        return BLOCK_OVERHEAD + estimate_tokens(block.get("text") or "")
+    return BLOCK_OVERHEAD + estimate_tokens(json.dumps(block, ensure_ascii=False))
+
+
+def estimate_system(text: str) -> int:
+    """系统提示词按纯文本计价，不加内容块开销。"""
+    s = str(text or "")
+    if not s.strip():
+        return 0
+    return estimate_tokens(s) + ROLE_OVERHEAD
+
+
+def estimate_message(message: dict) -> int:
+    """按真正发送出去的消息计价，包含角色与内容块的结构开销。"""
+    role = str(message.get("role") or "")
+    content = message.get("content")
+    if role == "system":
+        if isinstance(content, list):
+            return sum(estimate_block(b) for b in content) + ROLE_OVERHEAD
+        return estimate_system(content)
+    tokens = ROLE_OVERHEAD
+    if isinstance(content, str):
+        if content:
+            tokens += BLOCK_OVERHEAD + estimate_tokens(content)
+    elif isinstance(content, list):
+        for block in content:
+            tokens += estimate_block(block)
+    calls = message.get("tool_calls")
+    if calls:
+        tokens += BLOCK_OVERHEAD + estimate_tokens(json.dumps(calls, ensure_ascii=False))
+    return tokens
+
+
+def estimate_messages(messages: list[dict]) -> int:
+    return sum(estimate_message(msg) for msg in messages)
+
+
+def estimate_tools(tools: list[dict] | None) -> int:
+    """工具 schema 本身也占上下文，按 JSON 长度计价。"""
+    if not tools:
+        return 0
+    return BLOCK_OVERHEAD + estimate_tokens(json.dumps(tools, ensure_ascii=False))
 
 
 def format_rows(rows: list[dict]) -> str:

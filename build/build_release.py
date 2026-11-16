@@ -100,8 +100,49 @@ def generate_bundle_imports() -> None:
     print(f"依赖清单：{len(top)} 个模块 -> {target}", flush=True)
 
 
+def write_version_info(ver: str) -> Path:
+    """生成 PyInstaller 版本资源文件，让 Nexus.exe 的属性面板显示真实版本。"""
+    parts = re.findall(r"\d+", ver)
+    nums = [int(p) for p in parts[:4]] or [0]
+    nums += [0] * (4 - len(nums))
+    quad = ", ".join(str(n) for n in nums)
+    target = ROOT / "build" / "spec" / "version_info.txt"
+    target.write_text(
+        "VSVersionInfo(\n"
+        "  ffi=FixedFileInfo(\n"
+        f"    filevers=({quad}),\n"
+        f"    prodvers=({quad}),\n"
+        "    mask=0x3f,\n"
+        "    flags=0x0,\n"
+        "    OS=0x40004,\n"
+        "    fileType=0x1,\n"
+        "    subtype=0x0,\n"
+        "    date=(0, 0)\n"
+        "  ),\n"
+        "  kids=[\n"
+        "    StringFileInfo([\n"
+        "      StringTable('080404B0', [\n"
+        "        StringStruct('CompanyName', 'donghai'),\n"
+        "        StringStruct('FileDescription', 'Nexus 桌面智能助手'),\n"
+        f"        StringStruct('FileVersion', '{ver}'),\n"
+        "        StringStruct('InternalName', 'Nexus'),\n"
+        "        StringStruct('OriginalFilename', 'Nexus.exe'),\n"
+        "        StringStruct('ProductName', 'Nexus'),\n"
+        f"        StringStruct('ProductVersion', '{ver}'),\n"
+        "        StringStruct('LegalCopyright', 'Copyright (c) 2026 donghai')])\n"
+        "    ]),\n"
+        "    VarFileInfo([VarStruct('Translation', [0x0804, 1200])])\n"
+        "  ]\n"
+        ")\n",
+        encoding="utf-8",
+    )
+    print(f"版本资源：{ver} -> {target}", flush=True)
+    return target
+
+
 def build_pyinstaller() -> None:
     log("PyInstaller 分体式构建")
+    write_version_info(version())
     generate_bundle_imports()
     run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean",
          "--distpath", str(ROOT / "dist"), "--workpath", str(WORK),

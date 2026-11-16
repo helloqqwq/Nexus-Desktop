@@ -6,6 +6,7 @@ OpenAI 风格返回结构（text / reasoning / tool_calls / finish_reason）。
 from __future__ import annotations
 
 import http.client
+import hashlib
 import json
 import random
 import socket
@@ -74,6 +75,46 @@ class LLMClient:
         max_tokens = int(self.config.get("llm.max_tokens") or 65536)
         return thinking, effort, timeout, max_tokens
 
+    def envelope(self, tools: list[dict] | None = None) -> str:
+        """请求信封指纹：只有它一致时，上一轮的 usage 才能复用为锚点。"""
+        target = self.target()
+        thinking, effort, _, max_tokens = self._settings()
+        tools_digest = hashlib.sha256(
+            json.dumps(tools or [], ensure_ascii=False, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+        payload = {
+            "provider": target["provider"],
+            "model": target["model"],
+            "thinking": thinking,
+            "effort": effort,
+            "max_tokens": max_tokens,
+            "tools": tools_digest,
+        }
+        return hashlib.sha256(
+            json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        ).hexdigest()
+
+    @staticmethod
+    def _normalize_openai_usage(raw) -> dict | None:
+        """OpenAI 兼容用量归一：prompt_tokens 含缓存命中，需要拆开避免重复相加。"""
+        if not isinstance(raw, dict):
+            return None
+        prompt = int(raw.get("prompt_tokens") or 0)
+        output = int(raw.get("completion_tokens") or 0)
+        if prompt <= 0 and output <= 0:
+            return None
+        details = raw.get("prompt_tokens_details") or {}
+        cached = int(details.get("cached_tokens") or raw.get("prompt_cache_hit_tokens") or 0)
+        cache_write = int(details.get("cache_write_tokens") or 0)
+        cached = max(0, min(cached, prompt))
+        return {
+            "input": max(0, prompt - cached),
+            "output": output,
+            "cache_read": cached,
+            "cache_write": cache_write,
+            "total": int(raw.get("total_tokens") or (prompt + output)),
+        }
+
     @staticmethod
     def _require_key(target: dict) -> None:
         if not target.get("api_key"):
@@ -125,6 +166,8 @@ class LLMClient:
             "messages": messages,
             "stream": True,
             "temperature": temperature,
+            # 让兼容服务在流末尾回传 usage；个别服务不认识该字段，下面会自动降级重试。
+            "stream_options": {"include_usage": True},
         }
         # 小米 MiMo 的 OpenAI 兼容接口使用 max_completion_tokens。
         if target["provider"] == "mimo":
@@ -151,12 +194,23 @@ class LLMClient:
         }
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
 
-        response = self._open(url, data, headers, timeout, on_retry=on_retry,
-                              cancel=cancel)
+        try:
+            response = self._open(url, data, headers, timeout, on_retry=on_retry,
+                                  cancel=cancel)
+        except LLMError as e:
+            # 少数兼容服务会拒绝 stream_options；去掉后重试一次，统计退回本地估算。
+            if e.status in (400, 422):
+                payload.pop("stream_options", None)
+                data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+                response = self._open(url, data, headers, timeout, on_retry=on_retry,
+                                      cancel=cancel)
+            else:
+                raise
         text_parts: list[str] = []
         reasoning_parts: list[str] = []
         calls: dict[int, dict] = {}
         finish_reason = ""
+        usage_raw = None
         try:
             for raw in response:
                 if cancel is not None and cancel.is_set():
@@ -171,6 +225,8 @@ class LLMClient:
                     obj = json.loads(chunk)
                 except json.JSONDecodeError:
                     continue
+                if isinstance(obj.get("usage"), dict):
+                    usage_raw = obj["usage"]
                 choices = obj.get("choices") or []
                 if not choices:
                     continue
@@ -209,7 +265,8 @@ class LLMClient:
             except OSError:
                 pass
 
-        return self._result(text_parts, reasoning_parts, calls, finish_reason)
+        return self._result(text_parts, reasoning_parts, calls, finish_reason,
+                            self._normalize_openai_usage(usage_raw))
 
     def _complete_openai(self, messages, max_tokens, temperature, target) -> str:
         _, _, timeout, _ = self._settings()
@@ -385,6 +442,7 @@ class LLMClient:
         reasoning_parts: list[str] = []
         calls: dict[int, dict] = {}
         finish_reason = ""
+        usage = {"input": 0, "output": 0, "cache_read": 0, "cache_write": 0}
         try:
             for raw in response:
                 if cancel is not None and cancel.is_set():
@@ -408,6 +466,13 @@ class LLMClient:
                         t("稍后重试或更换模型", "Try again later or switch models"),
                         partial="".join(text_parts),
                     )
+                if kind == "message_start":
+                    u = (obj.get("message") or {}).get("usage") or {}
+                    usage["input"] = int(u.get("input_tokens") or 0)
+                    usage["cache_read"] = int(u.get("cache_read_input_tokens") or 0)
+                    usage["cache_write"] = int(u.get("cache_creation_input_tokens") or 0)
+                    usage["output"] = int(u.get("output_tokens") or 0)
+                    continue
                 if kind == "content_block_start":
                     idx = int(obj.get("index") or 0)
                     block = obj.get("content_block") or {}
@@ -438,6 +503,9 @@ class LLMClient:
                         slot["arguments"] += str(delta.get("partial_json") or "")
                 elif kind == "message_delta":
                     finish_reason = str((obj.get("delta") or {}).get("stop_reason") or finish_reason)
+                    delta_usage = obj.get("usage") or {}
+                    if delta_usage.get("output_tokens") is not None:
+                        usage["output"] = int(delta_usage.get("output_tokens") or 0)
         except (socket.timeout, TimeoutError) as e:
             raise LLMError("模型响应超时", "网络较慢或模型负载高，请稍后重试",
                            partial="".join(text_parts)) from e
@@ -450,7 +518,9 @@ class LLMClient:
             except OSError:
                 pass
 
-        return self._result(text_parts, reasoning_parts, calls, finish_reason)
+        total = sum(usage.values())
+        return self._result(text_parts, reasoning_parts, calls, finish_reason,
+                            dict(usage, total=total) if total > 0 else None)
 
     def _complete_anthropic(self, messages, max_tokens, temperature, target) -> str:
         _, _, timeout, _ = self._settings()
@@ -498,7 +568,7 @@ class LLMClient:
         return "".join(parts).strip()
 
     @staticmethod
-    def _result(text_parts, reasoning_parts, calls, finish_reason) -> dict:
+    def _result(text_parts, reasoning_parts, calls, finish_reason, usage=None) -> dict:
         tool_calls = []
         for idx in sorted(calls):
             slot = calls[idx]
@@ -517,6 +587,7 @@ class LLMClient:
             "reasoning": "".join(reasoning_parts),
             "tool_calls": tool_calls,
             "finish_reason": finish_reason,
+            "usage": usage,
         }
 
     # ---------- 连接与重试 ----------

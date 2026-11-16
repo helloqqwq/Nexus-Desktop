@@ -16,50 +16,30 @@
 
     <main class="content">
       <div class="kicker" data-i18n="本次更新">本次更新</div>
-      <h1 data-i18n="新的 Nexus，更清楚也更好用">新的 Nexus，更清楚也更好用</h1>
+      <h1 data-i18n="Nexus 0.2.0：技能、提示词与记忆">Nexus 0.2.0：技能、提示词与记忆</h1>
       <div class="version-badge"><span data-i18n="版本">版本</span> <b id="versionText">-</b></div>
-      <p class="lead" data-i18n="这次更新主要整理界面、补齐中英文，并把上下文和更新流程做得更透明。">这次更新主要整理界面、补齐中英文，并把上下文和更新流程做得更透明。</p>
+      <p class="lead" data-i18n="这次更新带来技能、系统提示词和长期记忆，并让上下文计量更准确。">这次更新带来技能、系统提示词和长期记忆，并让上下文计量更准确。</p>
 
       <div class="feature-grid">
         <div class="feature">
-          <div class="feature-icon">⚙</div>
-          <h3 data-i18n="更清爽的设置中心">更清爽的设置中心</h3>
-          <p data-i18n="设置按账号、模型、上下文、外观、数据和更新重新分组，不再堆在一起。">设置按账号、模型、上下文、外观、数据和更新重新分组，不再堆在一起。</p>
+          <div class="feature-icon">✦</div>
+          <h3 data-i18n="技能（Skills）">技能（Skills）</h3>
+          <p data-i18n="内置会议纪要、电脑排查、单页网页与周报四个技能；用 / 或输入框的 + 调用，也可以把自己的 SKILL.md 放进技能目录。">内置会议纪要、电脑排查、单页网页与周报四个技能；用 / 或输入框的 + 调用，也可以把自己的 SKILL.md 放进技能目录。</p>
         </div>
         <div class="feature">
-          <div class="feature-icon">中</div>
-          <h3 data-i18n="全界面中英文切换">全界面中英文切换</h3>
-          <p data-i18n="主界面、设置、历史、快捷浮窗、托盘菜单和引导页都支持双语。">主界面、设置、历史、快捷浮窗、托盘菜单和引导页都支持双语。</p>
+          <div class="feature-icon">≡</div>
+          <h3 data-i18n="系统提示词库">系统提示词库</h3>
+          <p data-i18n="多条 Markdown 规则可单独启停，左侧编辑、右侧实时预览；名称留空会按内容自动命名。">多条 Markdown 规则可单独启停，左侧编辑、右侧实时预览；名称留空会按内容自动命名。</p>
         </div>
         <div class="feature">
           <div class="feature-icon">◎</div>
-          <h3 data-i18n="首次使用引导">首次使用引导</h3>
-          <p data-i18n="独立的引导窗口，带你配置语言、账号和 API Key。">独立的引导窗口，带你配置语言、账号和 API Key。</p>
+          <h3 data-i18n="长期记忆">长期记忆</h3>
+          <p data-i18n="你明确说过的偏好会自动记住，下次对话直接生效；设置里可以查看、编辑、删除，内容加密保存在本机。">你明确说过的偏好会自动记住，下次对话直接生效；设置里可以查看、编辑、删除，内容加密保存在本机。</p>
         </div>
         <div class="feature">
           <div class="feature-icon">≋</div>
-          <h3 data-i18n="上下文自动压缩">上下文自动压缩</h3>
-          <p data-i18n="128K / 1M 两档，实时显示占用；达到 50% 自动把整个会话统一总结为摘要，也可随时手动压缩。">128K / 1M 两档，实时显示占用；达到 50% 自动把整个会话统一总结为摘要，也可随时手动压缩。</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">!</div>
-          <h3 data-i18n="更清楚的 API 报错">更清楚的 API 报错</h3>
-          <p data-i18n="可以直接展开查看 HTTP 状态码与服务端返回内容。">可以直接展开查看 HTTP 状态码与服务端返回内容。</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">↻</div>
-          <h3 data-i18n="自动检查更新">自动检查更新</h3>
-          <p data-i18n="从 GitHub Releases 检查新版本，可立即更新或暂不更新。">从 GitHub Releases 检查新版本，可立即更新或暂不更新。</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">◎</div>
-          <h3 data-i18n="本地账号资料">本地账号资料</h3>
-          <p data-i18n="昵称、头像和配色只保存在本机，不联网。">昵称、头像和配色只保存在本机，不联网。</p>
-        </div>
-        <div class="feature">
-          <div class="feature-icon">●</div>
-          <h3 data-i18n="只保留悬浮球">只保留悬浮球</h3>
-          <p data-i18n="桌面宠物已移除，悬浮球保持轻量、稳定、不占任务栏。">桌面宠物已移除，悬浮球保持轻量、稳定、不占任务栏。</p>
+          <h3 data-i18n="更准确的上下文计量">更准确的上下文计量</h3>
+          <p data-i18n="系统提示词、工具定义和真实 API 用量一起计入，环图百分比与实际请求一致，达到 50% 自动压缩。">系统提示词、工具定义和真实 API 用量一起计入，环图百分比与实际请求一致，达到 50% 自动压缩。</p>
         </div>
       </div>
 
@@ -68,6 +48,7 @@
 
     <footer class="footer">
       <div class="dots"><span class="dot active"></span></div>
+      <button class="btn text" id="changelogBtn" data-i18n="在 GitHub 查看完整更新日志">在 GitHub 查看完整更新日志</button>
       <button class="btn text" id="guideBtn" data-i18n="重新打开新手引导">重新打开新手引导</button>
       <button class="btn primary" id="doneBtn" data-i18n="开始使用">开始使用</button>
     </footer>
@@ -77,6 +58,7 @@
   <script>
     (function () {
       'use strict';
+      var CHANGELOG_URL = 'https://github.com/helloqqwq/Nexus-Desktop/blob/main/CHANGELOG.md';
       var T = function (s) { return window.NexusI18n ? window.NexusI18n.t(s) : s; };
       function api() { return window.pywebview && window.pywebview.api; }
       function call(name) {
@@ -105,6 +87,9 @@
       document.getElementById('closeBtn').addEventListener('click', function () { call('whatsnew_done'); });
       document.getElementById('guideBtn').addEventListener('click', function () {
         call('show_onboarding');
+      });
+      document.getElementById('changelogBtn').addEventListener('click', function () {
+        call('open_release_page', CHANGELOG_URL);
       });
       if (window.pywebview && window.pywebview.api) boot();
       else window.addEventListener('pywebviewready', boot, { once: true });

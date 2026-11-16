@@ -41,6 +41,12 @@
           </svg>
           <span class="nav-label" data-i18n="历史">历史</span>
         </button>
+        <button class="nav-item" id="skillsNavBtn" data-i18n-aria="技能" aria-label="技能">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3.5l2.1 4.6 5 .6-3.7 3.4.9 4.9L12 14.7 7.7 17l.9-4.9L4.9 8.7l5-.6z"/>
+          </svg>
+          <span class="nav-label" data-i18n="技能">技能</span>
+        </button>
         <button class="nav-item" data-view="settings" data-i18n-aria="设置" aria-label="设置">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h10M18 17h2"/>
@@ -135,6 +141,7 @@
 
         <div class="composer-wrap">
           <div class="composer" id="composer">
+            <div class="skill-bar" id="skillBar" hidden></div>
             <div class="attach-bar" id="attachmentBar" hidden></div>
             <textarea id="input" rows="1" data-i18n-placeholder="说说你想做什么…（/ 命令，@ 引用文件）" placeholder="说说你想做什么…（/ 命令，@ 引用文件）" spellcheck="false"></textarea>
             <div class="composer-actions">
@@ -188,6 +195,9 @@
             </div>
 
             <div class="pop-menu plus-menu" id="plusMenu" hidden>
+              <div class="menu-title" id="plusSkillTitle" data-i18n="技能" hidden>技能</div>
+              <div id="plusSkillList"></div>
+              <div class="menu-sep" id="plusSkillSep" hidden></div>
               <button class="menu-row" data-act="file">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
                 <span data-i18n="引用本地文件…">引用本地文件…</span>
@@ -234,6 +244,8 @@
           <nav class="settings-nav" id="settingsNav">
             <button class="settings-nav-item active" data-target="groupAccount" data-i18n="账号与语言">账号与语言</button>
             <button class="settings-nav-item" data-target="groupModel" data-i18n="模型与 API">模型与 API</button>
+            <button class="settings-nav-item" data-target="groupSkills" data-i18n="技能与提示词">技能与提示词</button>
+            <button class="settings-nav-item" data-target="groupMemory" data-i18n="记忆">记忆</button>
             <button class="settings-nav-item" data-target="groupContext" data-i18n="上下文">上下文</button>
             <button class="settings-nav-item" data-target="groupMode" data-i18n="运行时模式">运行时模式</button>
             <button class="settings-nav-item" data-target="groupShortcut" data-i18n="快捷键与启动">快捷键与启动</button>
@@ -376,6 +388,79 @@
                       <option value="131072">128K</option>
                     </select>
                   </label>
+                </div>
+              </div>
+            </section>
+
+            <section class="settings-page" data-page="groupSkills" hidden>
+              <div class="settings-head">
+                <div class="settings-title" data-i18n="技能与提示词">技能与提示词</div>
+                <div class="settings-sub" data-i18n="技能是一段可复用的工作方法：用 / 调用，也可以让模型按描述自动匹配">技能是一段可复用的工作方法：用 / 调用，也可以让模型按描述自动匹配</div>
+              </div>
+
+              <div class="group">
+                <div class="group-title-row">
+                  <div class="group-title" data-i18n="系统提示词">系统提示词</div>
+                  <span class="skill-count" id="promptCount"></span>
+                </div>
+                <div class="skill-toolbar">
+                  <button class="btn primary sm" id="promptNewBtn" data-i18n="新建系统提示词">新建系统提示词</button>
+                  <button class="btn ghost sm" id="promptDirBtn" data-i18n="打开提示词目录">打开提示词目录</button>
+                </div>
+                <div class="prompt-list" id="promptList"></div>
+                <div class="field-note" data-i18n="每次对话会把启用的提示词按名称顺序追加到系统提示词；文件保存在 prompts 目录，可直接编辑 .md。">每次对话会把启用的提示词按名称顺序追加到系统提示词；文件保存在 prompts 目录，可直接编辑 .md。</div>
+              </div>
+
+              <div class="group">
+                <div class="group-title-row">
+                  <div class="group-title" data-i18n="我的技能">我的技能</div>
+                  <span class="skill-count" id="skillCount"></span>
+                </div>
+                <div class="skill-toolbar">
+                  <button class="btn primary sm" id="skillNewBtn" data-i18n="新建技能">新建技能</button>
+                  <button class="btn ghost sm" id="skillDirBtn" data-i18n="打开技能目录">打开技能目录</button>
+                  <button class="btn text sm" id="skillRefreshBtn" data-i18n="刷新">刷新</button>
+                </div>
+                <div class="skill-list" id="skillList"></div>
+                <div class="field-note" data-i18n="支持从目录导入：把含 SKILL.md 的文件夹或 .json 文件放进技能目录，刷新即可。">支持从目录导入：把含 SKILL.md 的文件夹或 .json 文件放进技能目录，刷新即可。</div>
+                <div class="field-note" data-i18n="技能正文会直接进入系统提示词，只导入你信任的技能。">技能正文会直接进入系统提示词，只导入你信任的技能。</div>
+              </div>
+
+              <div class="group">
+                <div class="group-title" data-i18n="自动匹配">自动匹配</div>
+                <label class="switch-row">
+                  <input type="checkbox" id="setSkillsAuto">
+                  <span data-i18n="允许模型根据描述自动调用技能">允许模型根据描述自动调用技能</span>
+                </label>
+                <div class="field-note" data-i18n="关闭后，只有用 / 明确选中技能才会使用。">关闭后，只有用 / 明确选中技能才会使用。</div>
+              </div>
+            </section>
+
+            <section class="settings-page" data-page="groupMemory" hidden>
+              <div class="settings-head">
+                <div class="settings-title" data-i18n="记忆">记忆</div>
+                <div class="settings-sub" data-i18n="模型会把你明确说过的偏好记在这里，下次对话自动带上">模型会把你明确说过的偏好记在这里，下次对话自动带上</div>
+              </div>
+
+              <div class="group">
+                <div class="group-title" data-i18n="长期记忆">长期记忆</div>
+                <label class="switch-row">
+                  <input type="checkbox" id="setMemoryEnabled">
+                  <span data-i18n="允许模型记住你的偏好与习惯">允许模型记住你的偏好与习惯</span>
+                </label>
+                <div class="memory-add">
+                  <input id="memoryInput" type="text" maxlength="500" data-i18n-placeholder="例如：回答先给结论，再给细节" placeholder="例如：回答先给结论，再给细节">
+                  <select id="memoryCategory">
+                    <option value="preference" data-i18n="偏好">偏好</option>
+                    <option value="habit" data-i18n="习惯">习惯</option>
+                    <option value="fact" data-i18n="事实">事实</option>
+                  </select>
+                  <button class="btn ghost sm" id="memoryAddBtn" data-i18n="添加">添加</button>
+                </div>
+                <div class="memory-list" id="memoryList"></div>
+                <div class="memory-foot">
+                  <span class="field-note" data-i18n="加密保存在本机；每次对话最多注入最近 20 条。">加密保存在本机；每次对话最多注入最近 20 条。</span>
+                  <button class="btn text sm danger-text" id="memoryClearBtn" data-i18n="清空记忆">清空记忆</button>
                 </div>
               </div>
             </section>
@@ -580,6 +665,7 @@
               <div class="field-note" data-i18n="填写更新服务地址后，优先读取该地址的 update.json 并从中下载安装包；留空则回退到 GitHub Releases。">填写更新服务地址后，优先读取该地址的 update.json 并从中下载安装包；留空则回退到 GitHub Releases。</div>
               <div class="field-row">
                 <button class="btn ghost" id="checkUpdateBtn" data-i18n="立即检查">立即检查</button>
+                <button class="btn ghost" id="whatsnewBtn" data-i18n="查看本次更新">查看本次更新</button>
                 <button class="btn ghost" id="onboardingBtn" data-i18n="重新打开新手引导">重新打开新手引导</button>
                 <span class="field-status" id="updateStatus"></span>
               </div>
@@ -598,6 +684,9 @@
     </main>
 
     <aside class="rightpanel" id="rightPanel" hidden>
+      <div class="rp-resizer" id="rpResizer" role="separator" tabindex="0"
+           data-i18n-title="拖动调整面板宽度（双击恢复默认）"
+           data-i18n-aria="调整面板宽度" aria-label="调整面板宽度" aria-orientation="vertical"></div>
       <div class="rp-tabs">
         <div class="rp-tabs-scroll" id="rpTabs"></div>
         <button class="rp-tab-add" id="rpTabAdd" data-i18n-title="新建标签页" title="新建标签页" data-i18n-aria="新建标签页" aria-label="新建标签页">
@@ -694,6 +783,102 @@
     <div class="drop-box"><span data-i18n="松开即可添加到对话">松开即可添加到对话</span><br><span data-i18n="图片会作为附件，文本文件会作为引用内容">图片会作为附件，文本文件会作为引用内容</span></div>
   </div>
 
+  <div class="modal-mask" id="skillMask" hidden>
+    <div class="modal skill-modal">
+      <div class="modal-title-row">
+        <div class="modal-title" id="skillModalTitle" data-i18n="新建技能">新建技能</div>
+        <button type="button" class="icon-btn" id="skillMaskClose" data-i18n-title="关闭弹窗" title="关闭弹窗" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>
+        </button>
+      </div>
+      <label class="field"><span data-i18n="名称">名称</span>
+        <input id="skillName" type="text" maxlength="40" data-i18n-placeholder="留空则按内容自动命名" placeholder="留空则按内容自动命名" autocomplete="off">
+      </label>
+      <label class="field"><span data-i18n="描述">描述</span>
+        <input id="skillDesc" type="text" maxlength="200" data-i18n-placeholder="一句话说明这个技能做什么" placeholder="一句话说明这个技能做什么" autocomplete="off">
+      </label>
+      <label class="field"><span data-i18n="什么时候用">什么时候用</span>
+        <input id="skillWhen" type="text" maxlength="200" data-i18n-placeholder="用户提到…时" placeholder="用户提到…时" autocomplete="off">
+      </label>
+      <label class="field"><span data-i18n="提示词正文">提示词正文</span>
+        <textarea id="skillBody" rows="10" data-i18n-placeholder="写下步骤、约束和输出格式" placeholder="写下步骤、约束和输出格式"></textarea>
+      </label>
+      <label class="switch-row">
+        <input type="checkbox" id="skillEnabled" checked>
+        <span data-i18n="启用">启用</span>
+      </label>
+      <div class="field-note" data-i18n="支持变量：{{date}}、{{time}}、{{user}}、{{assistant}}、{{model}}、{{output_dir}}">支持变量：{{date}}、{{time}}、{{user}}、{{assistant}}、{{model}}、{{output_dir}}</div>
+      <div class="modal-actions">
+        <button class="btn text" id="skillCancel" data-i18n="取消">取消</button>
+        <button class="btn primary" id="skillSave" data-i18n="保存">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="promptMask" hidden>
+    <div class="modal prompt-editor">
+      <div class="modal-title-row">
+        <div class="modal-title" id="promptModalTitle" data-i18n="新建系统提示词">新建系统提示词</div>
+        <button type="button" class="icon-btn" id="promptMaskClose" data-i18n-title="关闭弹窗" title="关闭弹窗" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>
+        </button>
+      </div>
+      <div class="prompt-meta">
+        <label class="field"><span data-i18n="名称">名称</span>
+          <input id="promptName" type="text" maxlength="60" data-i18n-placeholder="留空则按内容自动命名" placeholder="留空则按内容自动命名" autocomplete="off">
+        </label>
+        <label class="switch-row">
+          <input type="checkbox" id="promptEnabled" checked>
+          <span data-i18n="启用">启用</span>
+        </label>
+      </div>
+      <div class="prompt-split">
+        <div class="prompt-pane">
+          <div class="prompt-pane-head">
+            <span>Markdown</span>
+            <span class="prompt-pane-hint" data-i18n="支持标题、列表、表格与代码块">支持标题、列表、表格与代码块</span>
+          </div>
+          <textarea id="promptBody" spellcheck="false" data-i18n-placeholder="写下你希望模型长期遵守的规则…" placeholder="写下你希望模型长期遵守的规则…"></textarea>
+        </div>
+        <div class="prompt-pane">
+          <div class="prompt-pane-head"><span data-i18n="预览">预览</span></div>
+          <div class="prompt-preview md" id="promptPreview"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn text" id="promptCancel" data-i18n="取消">取消</button>
+        <button class="btn primary" id="promptSave" data-i18n="保存">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="memoryMask" hidden>
+    <div class="modal">
+      <div class="modal-title-row">
+        <div class="modal-title" data-i18n="编辑记忆">编辑记忆</div>
+        <button type="button" class="icon-btn" id="memoryMaskClose" data-i18n-title="关闭弹窗" title="关闭弹窗" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>
+        </button>
+      </div>
+      <label class="field"><span data-i18n="内容">内容</span>
+        <textarea id="memoryEditText" rows="4" maxlength="500"></textarea>
+      </label>
+      <label class="field"><span data-i18n="类型">类型</span>
+        <select id="memoryEditCategory">
+          <option value="preference" data-i18n="偏好">偏好</option>
+          <option value="habit" data-i18n="习惯">习惯</option>
+          <option value="fact" data-i18n="事实">事实</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button class="btn text danger-text" id="memoryEditDelete" data-i18n="删除">删除</button>
+        <span class="modal-spacer"></span>
+        <button class="btn text" id="memoryEditCancel" data-i18n="取消">取消</button>
+        <button class="btn primary" id="memoryEditSave" data-i18n="保存">保存</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-mask" id="confirmMask" hidden>
     <div class="modal">
       <div class="modal-title" id="confirmTitle" data-i18n="需要你确认">需要你确认</div>
@@ -771,3 +956,4 @@
   <script src="assets/app.js"></script>
 </body>
 </html>
+
